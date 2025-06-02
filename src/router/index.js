@@ -1,6 +1,6 @@
 import login from '@/views/main/login.vue'
 import childDemo from '@/views/child/childDemo.vue'
-import childHome from '@/views/child/childHome.vue'
+import childHomeView from '@/views/child/childHome.vue'
 import childJob from '@/views/child/childJob.vue'
 import childEnterprise from '@/views/child/childEnterprise.vue'
 import childAbout from '@/views/child/childAbout.vue'
@@ -8,7 +8,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 const routes = [
   {
-    path: '/main/login',
+    path: '/login',
     name: 'login',
     component: login,
     meta: {
@@ -17,7 +17,7 @@ const routes = [
     }
   },
   {
-    path: '/main/childDemo',
+    path: '/childDemo',
     name: 'childDemo',
     component: childDemo,
     meta: {
@@ -26,16 +26,16 @@ const routes = [
     }
   },
   {
-    path: '/main/childHome',
-    name: 'childHome',
-    component: childHome,
+    path: '/childHomeView',
+    name: 'childHomeView',
+    component: childHomeView,
     meta: {
       title: '',
       keepAlive: false
     }
   },
   {
-    path: '/main/childJob',
+    path: '/childJob',
     name: 'childJob',
     component: childJob,
     meta: {
@@ -44,7 +44,7 @@ const routes = [
     }
   },
   {
-    path: '/main/childEnterprise',
+    path: '/childEnterprise',
     name: 'childEnterprise',
     component: childEnterprise,
     meta: {
@@ -53,7 +53,7 @@ const routes = [
     }
   },
   {
-    path: '/main/childAbout',
+    path: '/childAbout',
     name: 'childAbout',
     component: childAbout,
     meta: {
@@ -62,13 +62,13 @@ const routes = [
     }
   },
   {
-    path: '/main',
+    path: '/',
     name: 'home',
     component: () => import('../views/main/HomeView.vue')
   },
   {
-    path: '/main/child-home/:page*',
-    name: 'childHome',
+    path: '/child-home/:page*',
+    name: 'microAppChildHome',
     component: () => import('../views/ChildHome.vue')
   }
 ]

@@ -8,7 +8,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@micro-zoe/micro-app": "^1.0.0",
+    "@micro-zoe/micro-app": "1.0.0-rc.26",
     "axios": "^1.4.0",
     "element-plus": "^2.5.6",
     "js-md5": "^0.7.3",
