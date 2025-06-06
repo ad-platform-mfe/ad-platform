@@ -87,7 +87,7 @@ function logout() {
     border: none;
     padding-left: 200px;
     .el-menu-item {
-      height: 46px;
+      height: 100%;
     }
   }
   .login-btn {

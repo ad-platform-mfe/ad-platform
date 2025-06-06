@@ -9,6 +9,16 @@ import microApp from '@micro-zoe/micro-app'
 
 // 初始化micro-app
 microApp.start({
+  plugins: {
+    modules: {
+      'ad-home': [
+        {
+          // 开启 esmodule 模式
+          esmodule: true,
+        },
+      ],
+    },
+  },
 })
 
 const app = createApp(App)

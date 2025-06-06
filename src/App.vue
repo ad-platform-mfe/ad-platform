@@ -1,32 +1,30 @@
 <script setup>
-import {useRouter,useRoute } from 'vue-router'
-import commonHeader from '@/components/commonHeader.vue'
-import commonFooter from '@/components/commonFooter.vue'
-import mainContainer from '@/components/mainContainer.vue'
+import { useRouter, useRoute } from 'vue-router';
+import commonHeader from '@/components/commonHeader.vue';
+import commonFooter from '@/components/commonFooter.vue';
+import mainContainer from '@/components/mainContainer.vue';
 
-
-const router = useRouter()
-const route = useRoute()
-function toLogin(){
-  router.push('/main/login')
+const router = useRouter();
+const route = useRoute();
+function toLogin() {
+  router.push('/main/login');
 }
-function toDemo(){
-  router.push('/main/childDemo')
+function toDemo() {
+  router.push('/main/childDemo');
 }
 </script>
 
 <template>
-   <common-header v-if="route.name !== 'login'" />
-   <main-container />
+  <common-header v-if="route.name !== 'login'" />
+  <main-container />
   <common-footer v-if="route.name !== 'login'" />
 </template>
 
 <style scoped lang="scss">
-
-.common-header{
-  .el-button{
-    border:none;
-    background-color:red;
+.common-header {
+  .el-button {
+    border: none;
+    background-color: red;
   }
 }
 header {

@@ -7,7 +7,13 @@ import vue from '@vitejs/plugin-vue'
 export default defineConfig({
   base: '/main/',
   plugins: [
-    vue(),
+    vue({
+      template: {
+        compilerOptions: {
+          isCustomElement: (tag) => tag.startsWith('micro-app'),
+        },
+      },
+    }),
   ],
   resolve: {
     alias: {
@@ -15,7 +21,7 @@ export default defineConfig({
     }
   },
   server: {
-    port: 5173,
+    port: 5174,
     cors: true,
     proxy: {
       '/api': {
