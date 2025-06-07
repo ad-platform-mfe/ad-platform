@@ -2,7 +2,7 @@ import http from '@/utils/http'
 
 // 登录接口
 const accountLogin = (params) => { 
-  return http.postJson('/api/ucenter/login/accountLogin',params).then(res => res.data)
+  return http.postJson('/api/login',params).then(res => res.data)
 }
 
 // 登出接口
