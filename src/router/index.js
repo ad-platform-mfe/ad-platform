@@ -1,5 +1,4 @@
 import login from '@/views/main/login.vue'
-import childDemo from '@/views/child/childDemo.vue'
 import childHomeView from '@/views/child/childHome.vue'
 import childJob from '@/views/child/childJob.vue'
 import childEnterprise from '@/views/child/childEnterprise.vue'
@@ -11,15 +10,6 @@ const routes = [
     path: '/login',
     name: 'login',
     component: login,
-    meta: {
-      title: '',
-      keepAlive: false
-    }
-  },
-  {
-    path: '/childDemo',
-    name: 'childDemo',
-    component: childDemo,
     meta: {
       title: '',
       keepAlive: false
@@ -65,11 +55,6 @@ const routes = [
     path: '/',
     name: 'home',
     component: () => import('../views/main/HomeView.vue')
-  },
-  {
-    path: '/child-home/:page*',
-    name: 'microAppChildHome',
-    component: () => import('../views/ChildHome.vue')
   }
 ]
 

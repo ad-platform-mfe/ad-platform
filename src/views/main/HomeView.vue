@@ -5,12 +5,7 @@
 </template>
 
 <script setup>
-// 您可以在这里添加组件的逻辑
 </script>
 
 <style scoped>
-.home-view-container {
-  padding: 20px;
-  text-align: center;
-}
 </style>

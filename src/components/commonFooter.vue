@@ -8,10 +8,10 @@
 
 <style scoped lang="scss">
 .common-footer {
+  position: fixed;
+  bottom: 0;
   background: #000;
   box-sizing: border-box;
-  height: 40px;
-  line-height: 40px;
   width: 100%;
   p {
     color: hsla(0, 0%, 100%, 0.5);
