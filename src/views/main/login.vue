@@ -7,8 +7,8 @@ import microApp from '@micro-zoe/micro-app'
 
 const router = useRouter()
 const loginForm = reactive({
-  account: 13277081267,
-  password: 'a123456'
+  account: '',
+  password: ''
 })
 const { proxy } = getCurrentInstance()
 
@@ -24,7 +24,7 @@ function onSubmit() {
       microApp.setGlobalData({
         token: accessToken
       })
-      router.push('/main/childHome')
+      router.push('/main/HomeView')
     } else {
       proxy.$message.error(message)
     }
