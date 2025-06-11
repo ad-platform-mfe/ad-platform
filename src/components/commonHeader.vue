@@ -42,69 +42,82 @@ function logout() {
 
 <template>
   <div class="common-header">
-    <el-menu
-      :default-active="activeIndex"
-      background-color="#202329"
-      text-color="#ffffff"
-      mode="horizontal"
-      active-text-color="#ffd04b"
-      @select="handleSelect"
-    >
-      <span class="logo">DOSS</span>
-      <el-menu-item index="dashboard">概览</el-menu-item>
-      <el-menu-item index="campaigns">广告系列</el-menu-item>
-      <el-menu-item index="audiences">受众管理</el-menu-item>
-      <el-menu-item index="reports">数据报告</el-menu-item>
-      <el-button
-        round
-        plain
-        size="small"
-        v-if="globalData && globalData.token"
-        class="login-btn"
-        @click="logout"
-        >退出</el-button
+    <div class="header-container">
+      <span class="logo">星链矩阵</span>
+      <el-menu
+        :default-active="activeIndex"
+        background-color="transparent"
+        text-color="#ffffff"
+        mode="horizontal"
+        active-text-color="#ffd04b"
+        @select="handleSelect"
       >
-      <el-button
-        round
-        plain
-        size="small"
-        v-else
-        class="login-btn"
-        @click="() => router.push({ name: 'login' })"
-        >登录</el-button
-      >
-    </el-menu>
+        <el-menu-item index="dashboard">概览</el-menu-item>
+        <el-menu-item index="campaigns">广告系列</el-menu-item>
+        <el-menu-item index="audiences">受众管理</el-menu-item>
+        <el-menu-item index="reports">数据报告</el-menu-item>
+      </el-menu>
+      <div class="actions">
+        <el-button round plain size="small" v-if="globalData && globalData.token" @click="logout"
+          >退出</el-button
+        >
+        <el-button round plain size="small" v-else @click="() => router.push({ name: 'login' })"
+          >登录</el-button
+        >
+      </div>
+    </div>
   </div>
 </template>
 
 <style scoped lang="scss">
 .common-header {
   background-color: #202329;
-  .el-menu {
-    display: flex;
-    margin: 0 auto;
+  height: 60px;
+  display: flex;
+  justify-content: center;
+
+  .header-container {
     width: 1200px;
-    border: none;
-    padding-left: 200px;
-    .el-menu-item {
-      height: 100%;
-    }
+    height: 100%;
+    display: flex;
+    align-items: center;
   }
-  .login-btn {
-    position: absolute;
-    right: 15px;
-    top: 12px;
-    width: 80px;
-  }
+
   .logo {
     color: #ffd04b;
     font-size: 24px;
     font-weight: bold;
-    position: absolute;
-    line-height: 24px;
-    left: 15px;
-    top: 10px;
     cursor: pointer;
+  }
+
+  .el-menu {
+    flex: 1;
+    height: 100%;
+    border-bottom: none;
+    display: flex;
+    justify-content: center;
+    background-color: transparent;
+
+    &.el-menu--horizontal {
+      border-bottom: none;
+    }
+
+    .el-menu-item {
+      height: 100%;
+      background-color: transparent !important;
+
+      &:hover {
+        background-color: transparent !important;
+        color: #ffd04b !important;
+      }
+    }
+  }
+
+  .actions {
+    .el-button {
+      width: 80px;
+      background: transparent;
+    }
   }
 }
 </style>

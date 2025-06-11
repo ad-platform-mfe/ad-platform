@@ -1,35 +1,111 @@
 <script setup>
-import { useRouter } from 'vue-router'
-import { reactive, getCurrentInstance } from 'vue'
-import loginApi from '@/api/loginApi'
-import md5 from 'js-md5'
-import microApp from '@micro-zoe/micro-app'
+import { useRouter } from 'vue-router';
+import { reactive, ref, computed, getCurrentInstance } from 'vue';
+import loginApi from '@/api/loginApi';
+import microApp from '@micro-zoe/micro-app';
 
-const router = useRouter()
+const router = useRouter();
+const { proxy } = getCurrentInstance();
+
+// --- 状态管理 ---
+const formMode = ref('login');
+const loginFormRef = ref(null);
+const registerFormRef = ref(null);
+const forgotFormRef = ref(null);
+
+// --- 表单数据模型 ---
 const loginForm = reactive({
   account: '',
-  password: ''
-})
-const { proxy } = getCurrentInstance()
+  password: '',
+});
+const registerForm = reactive({
+  account: '',
+  password: '',
+  confirmPassword: '',
+});
+const forgotForm = reactive({
+  account: '',
+});
 
-function onSubmit() {
-  let params = loginForm
-  params.password = md5(params.password)
-  loginApi.accountLogin(params).then((res) => {
-    console.log(res)
-    const { success, data, message } = res
-    if (success) {
-      let { accessToken } = data
-      proxy.$message.success('登录成功')
-      microApp.setGlobalData({
-        token: accessToken
-      })
-      router.push('/main/HomeView')
-    } else {
-      proxy.$message.error(message)
+// --- 表单标题 ---
+const formTitle = computed(() => {
+  switch (formMode.value) {
+    case 'register':
+      return '创建新账号';
+    case 'forgot':
+      return '重置密码';
+    default:
+      return '欢迎登录';
+  }
+});
+
+// --- 表单验证规则 ---
+const validatePass = (rule, value, callback) => {
+  if (value !== registerForm.password) {
+    callback(new Error('两次输入的密码不一致!'));
+  } else {
+    callback();
+  }
+};
+const loginRules = {
+  account: [{ required: true, message: '请输入帐号', trigger: 'blur' }],
+  password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
+};
+const registerRules = {
+  account: [{ required: true, message: '请输入帐号', trigger: 'blur' }],
+  password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
+  confirmPassword: [
+    { required: true, message: '请再次输入密码', trigger: 'blur' },
+    { validator: validatePass, trigger: 'blur' },
+  ],
+};
+const forgotRules = {
+  account: [{ required: true, message: '请输入您的帐号', trigger: 'blur' }],
+};
+
+// --- 提交处理函数 ---
+const onLogin = async () => {
+  if (!loginFormRef.value) return;
+  await loginFormRef.value.validate((valid) => {
+    if (valid) {
+      loginApi.accountLogin(loginForm).then((res) => {
+        const { success, data, message } = res;
+        if (success) {
+          let { token } = data;
+          proxy.$message.success('登录成功');
+          microApp.setGlobalData({ token: token });
+          router.push('/main/HomeView');
+        } else {
+          proxy.$message.error(message);
+        }
+      });
     }
-  })
-}
+  });
+};
+
+const onRegister = async () => {
+  if (!registerFormRef.value) return;
+  await registerFormRef.value.validate((valid) => {
+    if (valid) {
+      // 假设 loginApi 有 register 方法
+      // loginApi.register(registerForm).then(...)
+      proxy.$message.success('注册成功，请登录！');
+      formMode.value = 'login';
+    }
+  });
+};
+
+const onForgotPassword = async () => {
+  if (!forgotFormRef.value) return;
+  await forgotFormRef.value.validate((valid) => {
+    if (valid) {
+      // 假设 loginApi 有 forgotPassword 方法
+      // loginApi.forgotPassword(forgotForm).then(...)
+      proxy.$message.success('密码重置邮件已发送，请注意查收！');
+      formMode.value = 'login';
+    }
+  });
+};
 </script>
 
 <template>
@@ -38,6 +114,7 @@ function onSubmit() {
       <div class="login-panel-redesigned">
         <div class="panel-l-redesigned">
           <div class="info-section">
+            <h3>星链矩阵</h3>
             <h2>高效触达，精准投放</h2>
             <p>新一代数字化广告平台，助力您的业务增长。</p>
             <ul>
@@ -52,8 +129,17 @@ function onSubmit() {
           </div>
         </div>
         <div class="panel-r-redesigned">
-          <h2>欢迎登录</h2>
-          <el-form :model="loginForm" size="large" class="login-form-redesigned">
+          <h2>{{ formTitle }}</h2>
+
+          <!-- 登录表单 -->
+          <el-form
+            v-if="formMode === 'login'"
+            ref="loginFormRef"
+            :model="loginForm"
+            :rules="loginRules"
+            size="large"
+            class="login-form-redesigned"
+          >
             <el-form-item prop="account">
               <el-input
                 v-model="loginForm.account"
@@ -71,19 +157,90 @@ function onSubmit() {
                 clearable
                 show-password
                 prefix-icon="Lock"
+                @keyup.enter="onLogin"
               ></el-input>
             </el-form-item>
             <el-form-item>
-              <el-button
-                type="primary"
-                class="login-btn-redesigned"
-                @click="onSubmit('loginForm')"
+              <el-button type="primary" class="login-btn-redesigned" @click="onLogin"
                 >登 录</el-button
               >
             </el-form-item>
             <div class="form-footer">
-              <el-link type="primary">忘记密码?</el-link>
-              <el-link type="primary">注册新账号</el-link>
+              <el-link type="primary" @click="formMode = 'forgot'">忘记密码?</el-link>
+              <el-link type="primary" @click="formMode = 'register'">注册新账号</el-link>
+            </div>
+          </el-form>
+
+          <!-- 注册表单 -->
+          <el-form
+            v-if="formMode === 'register'"
+            ref="registerFormRef"
+            :model="registerForm"
+            :rules="registerRules"
+            size="large"
+            class="login-form-redesigned"
+          >
+            <el-form-item prop="account">
+              <el-input
+                v-model="registerForm.account"
+                placeholder="请输入帐号"
+                prefix-icon="User"
+              ></el-input>
+            </el-form-item>
+            <el-form-item prop="password">
+              <el-input
+                type="password"
+                v-model="registerForm.password"
+                placeholder="请输入密码"
+                show-password
+                prefix-icon="Lock"
+              ></el-input>
+            </el-form-item>
+            <el-form-item prop="confirmPassword">
+              <el-input
+                type="password"
+                v-model="registerForm.confirmPassword"
+                placeholder="请再次输入密码"
+                show-password
+                prefix-icon="Lock"
+                @keyup.enter="onRegister"
+              ></el-input>
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" class="login-btn-redesigned" @click="onRegister"
+                >注 册</el-button
+              >
+            </el-form-item>
+            <div class="form-footer">
+              <el-link type="primary" @click="formMode = 'login'">已有账号？返回登录</el-link>
+            </div>
+          </el-form>
+
+          <!-- 忘记密码表单 -->
+          <el-form
+            v-if="formMode === 'forgot'"
+            ref="forgotFormRef"
+            :model="forgotForm"
+            :rules="forgotRules"
+            size="large"
+            class="login-form-redesigned"
+          >
+            <p class="form-description">请输入您的帐号，我们将向关联邮箱发送密码重置指引。</p>
+            <el-form-item prop="account">
+              <el-input
+                v-model="forgotForm.account"
+                placeholder="请输入帐号"
+                prefix-icon="User"
+                @keyup.enter="onForgotPassword"
+              ></el-input>
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" class="login-btn-redesigned" @click="onForgotPassword"
+                >发送重置邮件</el-button
+              >
+            </el-form-item>
+            <div class="form-footer">
+              <el-link type="primary" @click="formMode = 'login'">返回登录</el-link>
             </div>
           </el-form>
         </div>
@@ -95,27 +252,19 @@ function onSubmit() {
 <style scoped lang="scss">
 .login-page-redesigned {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   min-height: 100vh;
-  background-color: #f0f2f5; 
+  background-color: #f0f2f5;
   font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
   color: #303133;
-}
-
-.logo-redesigned {
-  font-size: 28px;
-  font-weight: bold;
-  color: #1677FF; 
-  cursor: pointer;
 }
 
 .login-main-content {
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-grow: 1; 
+  flex-grow: 1;
   width: 100%;
   padding: 40px 20px;
 }
@@ -123,23 +272,30 @@ function onSubmit() {
 .login-panel-redesigned {
   width: 1000px;
   max-width: 1100px;
+  min-height: 600px;
   display: flex;
   background-color: #ffffff;
   border-radius: 8px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  overflow: hidden; 
+  overflow: hidden;
 }
 
 .panel-l-redesigned {
   width: 50%;
   padding: 60px 40px;
-  background-color: #1677FF; 
+  background-color: #1677ff;
   color: #ffffff;
   display: flex;
   flex-direction: column;
   justify-content: center;
 
   .info-section {
+    h3 {
+      font-weight: 500;
+      font-size: 22px;
+      opacity: 0.9;
+      letter-spacing: 1px;
+    }
     h2 {
       font-size: 28px;
       font-weight: 600;
@@ -171,7 +327,7 @@ function onSubmit() {
     img {
       max-width: 100%;
       border-radius: 6px;
-      max-height: 250px; 
+      max-height: 250px;
       object-fit: cover;
     }
   }
@@ -194,13 +350,20 @@ function onSubmit() {
 }
 
 .login-form-redesigned {
+  .form-description {
+    font-size: 14px;
+    color: #606266;
+    margin-bottom: 25px;
+    text-align: center;
+    line-height: 1.5;
+  }
   .el-form-item {
     margin-bottom: 25px;
   }
   .el-input {
     :deep(.el-input__wrapper) {
       border-radius: 4px;
-      padding: 2px 12px; 
+      padding: 2px 12px;
     }
     :deep(.el-input__inner) {
       height: 42px;
@@ -214,15 +377,15 @@ function onSubmit() {
   height: 44px;
   font-size: 16px;
   border-radius: 4px;
-  background-color: #1677FF;
-  border-color: #1677FF;
+  background-color: #1677ff;
+  border-color: #1677ff;
   &:hover {
-    background-color: #409EFF;
-    border-color: #409EFF;
+    background-color: #409eff;
+    border-color: #409eff;
   }
   &:active {
-    background-color: #0052CC;
-    border-color: #0052CC;
+    background-color: #0052cc;
+    border-color: #0052cc;
   }
 }
 
@@ -233,41 +396,39 @@ function onSubmit() {
   font-size: 14px;
 }
 
-@media (max-width: 900px) {
+// 响应式设计
+@media (max-width: 1000px) {
   .login-panel-redesigned {
     flex-direction: column;
     width: 90%;
-    max-width: 500px; 
+    max-width: 500px;
   }
-  .panel-l-redesigned, .panel-r-redesigned {
+  .panel-l-redesigned,
+  .panel-r-redesigned {
     width: 100%;
-    padding: 40px 30px;
+    padding: 40px;
   }
   .panel-l-redesigned {
     .promo-image-container {
-        display: none; 
+      display: none;
     }
   }
 }
 
 @media (max-width: 600px) {
-    .login-header {
-        padding: 15px 20px;
-    }
-    .logo-redesigned {
-        font-size: 24px;
-    }
-    .panel-l-redesigned, .panel-r-redesigned {
-        padding: 30px 20px;
-    }
-     .panel-l-redesigned .info-section h2 {
-        font-size: 24px;
-    }
-    .panel-l-redesigned .info-section p, .panel-l-redesigned .info-section ul li {
-        font-size: 14px;
-    }
-    .panel-r-redesigned h2 {
-        font-size: 22px;
-    }
+  .panel-l-redesigned,
+  .panel-r-redesigned {
+    padding: 30px 20px;
+  }
+  .panel-l-redesigned .info-section h2 {
+    font-size: 24px;
+  }
+  .panel-l-redesigned .info-section p,
+  .panel-l-redesigned .info-section ul li {
+    font-size: 14px;
+  }
+  .panel-r-redesigned h2 {
+    font-size: 22px;
+  }
 }
 </style>
