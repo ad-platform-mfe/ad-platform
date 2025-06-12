@@ -15,16 +15,16 @@ const forgotFormRef = ref(null);
 
 // --- 表单数据模型 ---
 const loginForm = reactive({
-  account: '',
+  username: '',
   password: '',
 });
 const registerForm = reactive({
-  account: '',
+  username: '',
   password: '',
   confirmPassword: '',
 });
 const forgotForm = reactive({
-  account: '',
+  username: '',
 });
 
 // --- 表单标题 ---
@@ -48,11 +48,11 @@ const validatePass = (rule, value, callback) => {
   }
 };
 const loginRules = {
-  account: [{ required: true, message: '请输入帐号', trigger: 'blur' }],
+  username: [{ required: true, message: '请输入帐号', trigger: 'blur' }],
   password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
 };
 const registerRules = {
-  account: [{ required: true, message: '请输入帐号', trigger: 'blur' }],
+  username: [{ required: true, message: '请输入帐号', trigger: 'blur' }],
   password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
   confirmPassword: [
     { required: true, message: '请再次输入密码', trigger: 'blur' },
@@ -60,7 +60,7 @@ const registerRules = {
   ],
 };
 const forgotRules = {
-  account: [{ required: true, message: '请输入您的帐号', trigger: 'blur' }],
+  username: [{ required: true, message: '请输入您的帐号', trigger: 'blur' }],
 };
 
 // --- 提交处理函数 ---
@@ -69,12 +69,12 @@ const onLogin = async () => {
   await loginFormRef.value.validate((valid) => {
     if (valid) {
       loginApi.accountLogin(loginForm).then((res) => {
-        const { success, data, message } = res;
-        if (success) {
+        const { code, data, message } = res;
+        if (!code) {
           let { token } = data;
           proxy.$message.success('登录成功');
           microApp.setGlobalData({ token: token });
-          router.push('/main/HomeView');
+          router.push('/');
         } else {
           proxy.$message.error(message);
         }
@@ -87,8 +87,15 @@ const onRegister = async () => {
   if (!registerFormRef.value) return;
   await registerFormRef.value.validate((valid) => {
     if (valid) {
-      // 假设 loginApi 有 register 方法
-      // loginApi.register(registerForm).then(...)
+      loginApi.register(registerForm).then((res) => {
+        const { code, data, message } = res;
+        if (!code) {
+          proxy.$message.success('注册成功，请登录！');
+          formMode.value = 'login';
+        } else {
+          proxy.$message.error(message);
+        }
+      });
       proxy.$message.success('注册成功，请登录！');
       formMode.value = 'login';
     }
@@ -99,7 +106,6 @@ const onForgotPassword = async () => {
   if (!forgotFormRef.value) return;
   await forgotFormRef.value.validate((valid) => {
     if (valid) {
-      // 假设 loginApi 有 forgotPassword 方法
       // loginApi.forgotPassword(forgotForm).then(...)
       proxy.$message.success('密码重置邮件已发送，请注意查收！');
       formMode.value = 'login';
@@ -140,9 +146,9 @@ const onForgotPassword = async () => {
             size="large"
             class="login-form-redesigned"
           >
-            <el-form-item prop="account">
+            <el-form-item prop="username">
               <el-input
-                v-model="loginForm.account"
+                v-model="loginForm.username"
                 placeholder="请输入帐号"
                 maxlength="11"
                 clearable
@@ -180,9 +186,9 @@ const onForgotPassword = async () => {
             size="large"
             class="login-form-redesigned"
           >
-            <el-form-item prop="account">
+            <el-form-item prop="username">
               <el-input
-                v-model="registerForm.account"
+                v-model="registerForm.username"
                 placeholder="请输入帐号"
                 prefix-icon="User"
               ></el-input>
@@ -226,9 +232,9 @@ const onForgotPassword = async () => {
             class="login-form-redesigned"
           >
             <p class="form-description">请输入您的帐号，我们将向关联邮箱发送密码重置指引。</p>
-            <el-form-item prop="account">
+            <el-form-item prop="username">
               <el-input
-                v-model="forgotForm.account"
+                v-model="forgotForm.username"
                 placeholder="请输入帐号"
                 prefix-icon="User"
                 @keyup.enter="onForgotPassword"

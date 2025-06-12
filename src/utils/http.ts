@@ -33,10 +33,9 @@ service.interceptors.request.use(
 service.interceptors.response.use(
   (response: AxiosResponse) => {
     const res = response.data;
-    // 这里假设成功的 code 是 200，您可以根据您的后端接口调整
-    if (res.code !== 200) {
+    // 成功的 code 是 0
+    if (res.code !== 0) {
       console.error('API Error:', res.message || 'Error');
-      // 可以根据 res.code 做更详细的错误处理
       if (res.code === 500) {
         // 例如：处理登录过期
         // MessageBox.confirm('您已登出，请重新登录', '确认', { ... })

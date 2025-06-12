@@ -24,7 +24,7 @@ const config: UserConfig = {
     cors: true,
     proxy: {
       '/api': {
-        target: 'http://localhost:3000',
+        target: 'http://localhost:9090',
         changeOrigin: true,
       },
       '/child-home': {
