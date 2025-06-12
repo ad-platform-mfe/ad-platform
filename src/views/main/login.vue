@@ -8,23 +8,30 @@ const router = useRouter();
 const { proxy } = getCurrentInstance();
 
 // --- 状态管理 ---
-const formMode = ref('login');
+const formMode = ref('login'); // 'login', 'register', 'forgot', 'reset'
 const loginFormRef = ref(null);
 const registerFormRef = ref(null);
 const forgotFormRef = ref(null);
+const resetPasswordFormRef = ref(null);
 
 // --- 表单数据模型 ---
 const loginForm = reactive({
-  username: '',
+  email: '',
   password: '',
 });
 const registerForm = reactive({
-  username: '',
+  email: '',
   password: '',
   confirmPassword: '',
 });
 const forgotForm = reactive({
-  username: '',
+  email: '',
+});
+const resetPasswordForm = reactive({
+  email: '',
+  code: '',
+  password: '',
+  confirmPassword: '',
 });
 
 // --- 表单标题 ---
@@ -33,6 +40,8 @@ const formTitle = computed(() => {
     case 'register':
       return '创建新账号';
     case 'forgot':
+      return '忘记密码';
+    case 'reset':
       return '重置密码';
     default:
       return '欢迎登录';
@@ -40,27 +49,55 @@ const formTitle = computed(() => {
 });
 
 // --- 表单验证规则 ---
-const validatePass = (rule, value, callback) => {
-  if (value !== registerForm.password) {
+const validatePass = (form, value, callback) => {
+  const targetPassword = form === 'register' ? registerForm.password : resetPasswordForm.password;
+  if (value !== targetPassword) {
     callback(new Error('两次输入的密码不一致!'));
   } else {
     callback();
   }
 };
+
 const loginRules = {
-  username: [{ required: true, message: '请输入帐号', trigger: 'blur' }],
+  email: [
+    { required: true, message: '请输入邮箱地址', trigger: 'blur' },
+    { type: 'email', message: '请输入正确的邮箱地址', trigger: ['blur', 'change'] },
+  ],
   password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
 };
+
 const registerRules = {
-  username: [{ required: true, message: '请输入帐号', trigger: 'blur' }],
+  email: [
+    { required: true, message: '请输入邮箱地址', trigger: 'blur' },
+    { type: 'email', message: '请输入正确的邮箱地址', trigger: ['blur', 'change'] },
+  ],
   password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
   confirmPassword: [
     { required: true, message: '请再次输入密码', trigger: 'blur' },
-    { validator: validatePass, trigger: 'blur' },
+    {
+      validator: (rule, value, callback) => validatePass('register', value, callback),
+      trigger: 'blur',
+    },
   ],
 };
+
 const forgotRules = {
-  username: [{ required: true, message: '请输入您的帐号', trigger: 'blur' }],
+  email: [
+    { required: true, message: '请输入您的邮箱地址', trigger: 'blur' },
+    { type: 'email', message: '请输入正确的邮箱地址', trigger: ['blur', 'change'] },
+  ],
+};
+
+const resetPasswordRules = {
+  code: [{ required: true, message: '请输入验证码', trigger: 'blur' }],
+  password: [{ required: true, message: '请输入新密码', trigger: 'blur' }],
+  confirmPassword: [
+    { required: true, message: '请再次输入新密码', trigger: 'blur' },
+    {
+      validator: (rule, value, callback) => validatePass('reset', value, callback),
+      trigger: 'blur',
+    },
+  ],
 };
 
 // --- 提交处理函数 ---
@@ -88,7 +125,7 @@ const onRegister = async () => {
   await registerFormRef.value.validate((valid) => {
     if (valid) {
       loginApi.register(registerForm).then((res) => {
-        const { code, data, message } = res;
+        const { code, message } = res;
         if (!code) {
           proxy.$message.success('注册成功，请登录！');
           formMode.value = 'login';
@@ -96,8 +133,6 @@ const onRegister = async () => {
           proxy.$message.error(message);
         }
       });
-      proxy.$message.success('注册成功，请登录！');
-      formMode.value = 'login';
     }
   });
 };
@@ -106,9 +141,33 @@ const onForgotPassword = async () => {
   if (!forgotFormRef.value) return;
   await forgotFormRef.value.validate((valid) => {
     if (valid) {
-      // loginApi.forgotPassword(forgotForm).then(...)
-      proxy.$message.success('密码重置邮件已发送，请注意查收！');
-      formMode.value = 'login';
+      loginApi.forgotPassword({ email: forgotForm.email }).then((res) => {
+        const { code, message } = res;
+        if (!code) {
+          proxy.$message.success('验证码已发送，请查收邮件并重置密码。');
+          resetPasswordForm.email = forgotForm.email;
+          formMode.value = 'reset';
+        } else {
+          proxy.$message.error(message);
+        }
+      });
+    }
+  });
+};
+
+const onResetPassword = async () => {
+  if (!resetPasswordFormRef.value) return;
+  await resetPasswordFormRef.value.validate((valid) => {
+    if (valid) {
+      loginApi.resetPassword(resetPasswordForm).then((res) => {
+        const { code, message } = res;
+        if (!code) {
+          proxy.$message.success('密码重置成功，请使用新密码登录。');
+          formMode.value = 'login';
+        } else {
+          proxy.$message.error(message);
+        }
+      });
     }
   });
 };
@@ -146,13 +205,12 @@ const onForgotPassword = async () => {
             size="large"
             class="login-form-redesigned"
           >
-            <el-form-item prop="username">
+            <el-form-item prop="email">
               <el-input
-                v-model="loginForm.username"
-                placeholder="请输入帐号"
-                maxlength="11"
+                v-model="loginForm.email"
+                placeholder="请输入邮箱"
                 clearable
-                prefix-icon="User"
+                prefix-icon="Message"
               ></el-input>
             </el-form-item>
             <el-form-item prop="password">
@@ -186,11 +244,11 @@ const onForgotPassword = async () => {
             size="large"
             class="login-form-redesigned"
           >
-            <el-form-item prop="username">
+            <el-form-item prop="email">
               <el-input
-                v-model="registerForm.username"
-                placeholder="请输入帐号"
-                prefix-icon="User"
+                v-model="registerForm.email"
+                placeholder="请输入邮箱"
+                prefix-icon="Message"
               ></el-input>
             </el-form-item>
             <el-form-item prop="password">
@@ -200,6 +258,7 @@ const onForgotPassword = async () => {
                 placeholder="请输入密码"
                 show-password
                 prefix-icon="Lock"
+                @keyup.enter="onRegister"
               ></el-input>
             </el-form-item>
             <el-form-item prop="confirmPassword">
@@ -231,18 +290,66 @@ const onForgotPassword = async () => {
             size="large"
             class="login-form-redesigned"
           >
-            <p class="form-description">请输入您的帐号，我们将向关联邮箱发送密码重置指引。</p>
-            <el-form-item prop="username">
+            <p class="form-description">请输入您的注册邮箱，我们将向该邮箱发送密码重置验证码。</p>
+            <el-form-item prop="email">
               <el-input
-                v-model="forgotForm.username"
-                placeholder="请输入帐号"
-                prefix-icon="User"
+                v-model="forgotForm.email"
+                placeholder="请输入邮箱"
+                prefix-icon="Message"
                 @keyup.enter="onForgotPassword"
               ></el-input>
             </el-form-item>
             <el-form-item>
               <el-button type="primary" class="login-btn-redesigned" @click="onForgotPassword"
-                >发送重置邮件</el-button
+                >发送验证码</el-button
+              >
+            </el-form-item>
+            <div class="form-footer">
+              <el-link type="primary" @click="formMode = 'login'">返回登录</el-link>
+            </div>
+          </el-form>
+
+          <!-- 重置密码表单 -->
+          <el-form
+            v-if="formMode === 'reset'"
+            ref="resetPasswordFormRef"
+            :model="resetPasswordForm"
+            :rules="resetPasswordRules"
+            size="large"
+            class="login-form-redesigned"
+          >
+            <p class="form-description">
+              验证码已发送至 <strong>{{ resetPasswordForm.email }}</strong>
+            </p>
+            <el-form-item prop="code">
+              <el-input
+                v-model="resetPasswordForm.code"
+                placeholder="请输入邮箱验证码"
+                prefix-icon="Key"
+              ></el-input>
+            </el-form-item>
+            <el-form-item prop="password">
+              <el-input
+                type="password"
+                v-model="resetPasswordForm.password"
+                placeholder="请输入新密码"
+                show-password
+                prefix-icon="Lock"
+              ></el-input>
+            </el-form-item>
+            <el-form-item prop="confirmPassword">
+              <el-input
+                type="password"
+                v-model="resetPasswordForm.confirmPassword"
+                placeholder="请再次输入新密码"
+                show-password
+                prefix-icon="Lock"
+                @keyup.enter="onResetPassword"
+              ></el-input>
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" class="login-btn-redesigned" @click="onResetPassword"
+                >确认重置密码</el-button
               >
             </el-form-item>
             <div class="form-footer">

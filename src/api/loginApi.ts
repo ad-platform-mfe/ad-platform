@@ -1,9 +1,25 @@
 import http from '@/utils/http';
 
 interface LoginParams {
-  username: string;
+  email: string;
   password?: string;
-  [key: string]: any;
+}
+
+interface RegisterParams {
+  email: string;
+  password?: string;
+  confirmPassword?: string;
+}
+
+interface ForgotPasswordParams {
+  email: string;
+}
+
+interface ResetPasswordParams {
+  email: string;
+  code: string;
+  password?: string;
+  confirmPassword?: string;
 }
 
 // 定义 API 响应的基础结构
@@ -19,13 +35,29 @@ const accountLogin = (params: LoginParams): Promise<ApiResponse> => {
 };
 
 // 登出接口
-// 这里假设登出可能不需要参数，或者参数是可选的
 const logout = (params?: any): Promise<ApiResponse> => {
-  // 使用标准的 http.get 方法，参数通过 params 配置传递
-  return http.get('/ucenter/login/logout', { params });
+  return http.get('/logout', { params });
+};
+
+// 注册接口
+const register = (params: RegisterParams): Promise<ApiResponse> => {
+  return http.post('/register', params);
+};
+
+// 忘记密码 - 发送验证码
+const forgotPassword = (params: ForgotPasswordParams): Promise<ApiResponse> => {
+  return http.post('/auth/forgot-password', params);
+};
+
+// 重置密码
+const resetPassword = (params: ResetPasswordParams): Promise<ApiResponse> => {
+  return http.post('/auth/reset-password', params);
 };
 
 export default {
   accountLogin,
   logout,
+  register,
+  forgotPassword,
+  resetPassword,
 };
