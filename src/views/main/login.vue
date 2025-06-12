@@ -134,8 +134,12 @@ const resetPasswordRules = {
 // --- 提交处理函数 ---
 const handleLoginSuccess = (data) => {
   const { token } = data;
-  proxy.$message.success('登录成功');
+  // 1. 本地存储token
+  localStorage.setItem('token', token);
+  // 2. 设置全局数据，通知其他应用
   microApp.setGlobalData({ token: token });
+  // 3. 提示并跳转
+  proxy.$message.success('登录成功');
   router.push('/');
 };
 

@@ -64,4 +64,27 @@ const router = createRouter({
   routes,
 });
 
+// 全局前置守卫
+router.beforeEach((to, from, next) => {
+  const token = localStorage.getItem('token');
+  const whiteList = ['/login']; // 不需要token的白名单
+
+  if (token) {
+    if (to.path === '/login') {
+      // 如果已登录，还想去登录页，则重定向到首页
+      next({ path: '/' });
+    } else {
+      next();
+    }
+  } else {
+    // 如果没有token
+    if (whiteList.includes(to.path)) {
+      // 如果在白名单中，则直接放行
+      next();
+    } else {
+      next({ path: '/login' });
+    }
+  }
+});
+
 export default router;

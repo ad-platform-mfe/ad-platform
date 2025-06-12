@@ -13,13 +13,11 @@ const service: AxiosInstance = axios.create({
 // 请求拦截器
 service.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    // 确保 headers 存在
     if (config.headers) {
-      // 可以在这里添加 token 等
-      // const token = getToken();
-      // if (token) {
-      //   config.headers['Authorization'] = `Bearer ${token}`;
-      // }
+      const token = localStorage.getItem('token');
+      if (token) {
+        config.headers['Authorization'] = `Bearer ${token}`;
+      }
     }
     return config;
   },
