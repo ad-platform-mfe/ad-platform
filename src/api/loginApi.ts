@@ -1,35 +1,15 @@
 import http from '@/utils/http';
+import type {
+  LoginParams,
+  RegisterParams,
+  ForgotPasswordParams,
+  ResetPasswordParams,
+  ApiResponse,
+  SendCodeParams,
+  LoginWithCodeParams,
+} from './type/user';
 
-interface LoginParams {
-  email: string;
-  password?: string;
-}
-
-interface RegisterParams {
-  email: string;
-  password?: string;
-  confirmPassword?: string;
-}
-
-interface ForgotPasswordParams {
-  email: string;
-}
-
-interface ResetPasswordParams {
-  email: string;
-  code: string;
-  password?: string;
-  confirmPassword?: string;
-}
-
-// 定义 API 响应的基础结构
-interface ApiResponse<T = any> {
-  code: number;
-  message: string;
-  data: T;
-}
-
-// 登录接口
+// 账号密码登录接口
 const accountLogin = (params: LoginParams): Promise<ApiResponse> => {
   return http.post('/login', params);
 };
@@ -54,8 +34,20 @@ const resetPassword = (params: ResetPasswordParams): Promise<ApiResponse> => {
   return http.post('/auth/reset-password', params);
 };
 
+// 发送邮箱登录验证码
+const sendLoginCode = (params: SendCodeParams): Promise<ApiResponse> => {
+  return http.post('/auth/code', params);
+};
+
+// 邮箱验证码登录
+const loginWithCode = (params: LoginWithCodeParams): Promise<ApiResponse> => {
+  return http.post('/auth/login', params);
+};
+
 export default {
   accountLogin,
+  sendLoginCode,
+  loginWithCode,
   logout,
   register,
   forgotPassword,

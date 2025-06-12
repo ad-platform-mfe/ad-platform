@@ -9,15 +9,23 @@ const { proxy } = getCurrentInstance();
 
 // --- 状态管理 ---
 const formMode = ref('login'); // 'login', 'register', 'forgot', 'reset'
-const loginFormRef = ref(null);
+const loginMethod = ref('account'); // 'account', 'email'
+
+// --- 表单引用 ---
+const accountFormRef = ref(null);
+const emailLoginFormRef = ref(null);
 const registerFormRef = ref(null);
 const forgotFormRef = ref(null);
 const resetPasswordFormRef = ref(null);
 
 // --- 表单数据模型 ---
-const loginForm = reactive({
-  email: '',
+const accountLoginForm = reactive({
+  username: '',
   password: '',
+});
+const emailLoginForm = reactive({
+  email: '',
+  code: '',
 });
 const registerForm = reactive({
   email: '',
@@ -34,7 +42,7 @@ const resetPasswordForm = reactive({
   confirmPassword: '',
 });
 
-// --- 表单标题 ---
+// --- 动态标题 ---
 const formTitle = computed(() => {
   switch (formMode.value) {
     case 'register':
@@ -48,6 +56,24 @@ const formTitle = computed(() => {
   }
 });
 
+// --- 验证码发送状态 ---
+const isSendingCode = ref(false);
+const countdown = ref(60);
+let timer = null;
+
+const startCountdown = () => {
+  isSendingCode.value = true;
+  timer = setInterval(() => {
+    if (countdown.value > 1) {
+      countdown.value--;
+    } else {
+      clearInterval(timer);
+      isSendingCode.value = false;
+      countdown.value = 60;
+    }
+  }, 1000);
+};
+
 // --- 表单验证规则 ---
 const validatePass = (form, value, callback) => {
   const targetPassword = form === 'register' ? registerForm.password : resetPasswordForm.password;
@@ -58,12 +84,17 @@ const validatePass = (form, value, callback) => {
   }
 };
 
-const loginRules = {
+const accountLoginRules = {
+  username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
+  password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
+};
+
+const emailLoginRules = {
   email: [
     { required: true, message: '请输入邮箱地址', trigger: 'blur' },
     { type: 'email', message: '请输入正确的邮箱地址', trigger: ['blur', 'change'] },
   ],
-  password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
+  code: [{ required: true, message: '请输入验证码', trigger: 'blur' }],
 };
 
 const registerRules = {
@@ -101,20 +132,48 @@ const resetPasswordRules = {
 };
 
 // --- 提交处理函数 ---
-const onLogin = async () => {
-  if (!loginFormRef.value) return;
-  await loginFormRef.value.validate((valid) => {
+const handleLoginSuccess = (data) => {
+  const { token } = data;
+  proxy.$message.success('登录成功');
+  microApp.setGlobalData({ token: token });
+  router.push('/');
+};
+
+const onAccountLogin = async () => {
+  if (!accountFormRef.value) return;
+  await accountFormRef.value.validate((valid) => {
     if (valid) {
-      loginApi.accountLogin(loginForm).then((res) => {
-        const { code, data, message } = res;
-        if (!code) {
-          let { token } = data;
-          proxy.$message.success('登录成功');
-          microApp.setGlobalData({ token: token });
-          router.push('/');
+      loginApi.accountLogin(accountLoginForm).then((res) => {
+        if (!res.code) handleLoginSuccess(res.data);
+        else proxy.$message.error(res.message);
+      });
+    }
+  });
+};
+
+const onSendCode = async () => {
+  if (!emailLoginFormRef.value || isSendingCode.value) return;
+  emailLoginFormRef.value.validateField('email', (isValid) => {
+    if (isValid) {
+      loginApi.sendLoginCode({ email: emailLoginForm.email }).then((res) => {
+        if (!res.code) {
+          proxy.$message.success('验证码已发送，请注意查收');
+          startCountdown();
         } else {
-          proxy.$message.error(message);
+          proxy.$message.error(res.message);
         }
+      });
+    }
+  });
+};
+
+const onEmailLogin = async () => {
+  if (!emailLoginFormRef.value) return;
+  await emailLoginFormRef.value.validate((valid) => {
+    if (valid) {
+      loginApi.loginWithCode(emailLoginForm).then((res) => {
+        if (!res.code) handleLoginSuccess(res.data);
+        else proxy.$message.error(res.message);
       });
     }
   });
@@ -194,46 +253,86 @@ const onResetPassword = async () => {
           </div>
         </div>
         <div class="panel-r-redesigned">
-          <h2>{{ formTitle }}</h2>
+          <div v-if="formMode === 'login'">
+            <el-tabs v-model="loginMethod" class="login-tabs" stretch>
+              <el-tab-pane label="账号密码登录" name="account"></el-tab-pane>
+              <el-tab-pane label="邮箱验证码登录" name="email"></el-tab-pane>
+            </el-tabs>
 
-          <!-- 登录表单 -->
-          <el-form
-            v-if="formMode === 'login'"
-            ref="loginFormRef"
-            :model="loginForm"
-            :rules="loginRules"
-            size="large"
-            class="login-form-redesigned"
-          >
-            <el-form-item prop="email">
-              <el-input
-                v-model="loginForm.email"
-                placeholder="请输入邮箱"
-                clearable
-                prefix-icon="Message"
-              ></el-input>
-            </el-form-item>
-            <el-form-item prop="password">
-              <el-input
-                type="password"
-                v-model="loginForm.password"
-                placeholder="请输入密码"
-                clearable
-                show-password
-                prefix-icon="Lock"
-                @keyup.enter="onLogin"
-              ></el-input>
-            </el-form-item>
-            <el-form-item>
-              <el-button type="primary" class="login-btn-redesigned" @click="onLogin"
-                >登 录</el-button
-              >
-            </el-form-item>
-            <div class="form-footer">
-              <el-link type="primary" @click="formMode = 'forgot'">忘记密码?</el-link>
-              <el-link type="primary" @click="formMode = 'register'">注册新账号</el-link>
-            </div>
-          </el-form>
+            <!-- 账号密码登录表单 -->
+            <el-form
+              v-if="loginMethod === 'account'"
+              ref="accountFormRef"
+              :model="accountLoginForm"
+              :rules="accountLoginRules"
+              size="large"
+              class="login-form-redesigned"
+            >
+              <el-form-item prop="username">
+                <el-input
+                  v-model="accountLoginForm.username"
+                  placeholder="请输入用户名"
+                  prefix-icon="User"
+                />
+              </el-form-item>
+              <el-form-item prop="password">
+                <el-input
+                  type="password"
+                  v-model="accountLoginForm.password"
+                  placeholder="请输入密码"
+                  show-password
+                  prefix-icon="Lock"
+                  @keyup.enter="onAccountLogin"
+                />
+              </el-form-item>
+              <el-form-item>
+                <el-button type="primary" class="login-btn-redesigned" @click="onAccountLogin"
+                  >登 录</el-button
+                >
+              </el-form-item>
+              <div class="form-footer">
+                <el-link type="primary" @click="formMode = 'forgot'">忘记密码?</el-link>
+                <el-link type="primary" @click="formMode = 'register'">注册新账号</el-link>
+              </div>
+            </el-form>
+
+            <!-- 邮箱验证码登录表单 -->
+            <el-form
+              v-if="loginMethod === 'email'"
+              ref="emailLoginFormRef"
+              :model="emailLoginForm"
+              :rules="emailLoginRules"
+              size="large"
+              class="login-form-redesigned"
+            >
+              <el-form-item prop="email">
+                <el-input
+                  v-model="emailLoginForm.email"
+                  placeholder="请输入邮箱地址"
+                  prefix-icon="Message"
+                >
+                  <template #append>
+                    <el-button @click="onSendCode" :disabled="isSendingCode">
+                      {{ isSendingCode ? `${countdown}s 后重发` : '获取验证码' }}
+                    </el-button>
+                  </template>
+                </el-input>
+              </el-form-item>
+              <el-form-item prop="code">
+                <el-input
+                  v-model="emailLoginForm.code"
+                  placeholder="请输入6位验证码"
+                  prefix-icon="Key"
+                  @keyup.enter="onEmailLogin"
+                />
+              </el-form-item>
+              <el-form-item>
+                <el-button type="primary" class="login-btn-redesigned" @click="onEmailLogin"
+                  >登 录</el-button
+                >
+              </el-form-item>
+            </el-form>
+          </div>
 
           <!-- 注册表单 -->
           <el-form
@@ -454,11 +553,7 @@ const onResetPassword = async () => {
   justify-content: center;
 
   h2 {
-    font-size: 24px;
-    font-weight: 600;
-    color: #303133;
-    margin-bottom: 30px;
-    text-align: center;
+    display: none;
   }
 }
 
@@ -507,6 +602,19 @@ const onResetPassword = async () => {
   justify-content: space-between;
   margin-top: 15px;
   font-size: 14px;
+}
+
+.login-tabs {
+  margin-bottom: 25px;
+  :deep(.el-tabs__header) {
+    margin: 0;
+  }
+  :deep(.el-tabs__nav-wrap::after) {
+    height: 1px;
+  }
+  :deep(.el-tabs__item) {
+    font-size: 16px;
+  }
 }
 
 // 响应式设计
