@@ -1,13 +1,36 @@
 <script setup>
-import { ref, getCurrentInstance } from 'vue';
+import { ref, getCurrentInstance, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
-import loginApi from '@/api/loginApi';
 import microApp from '@micro-zoe/micro-app';
 
 const activeIndex = ref('dashboard');
 const router = useRouter();
-const globalData = microApp.getGlobalData();
 const { proxy } = getCurrentInstance();
+
+// --- 初始化全局状态 ---
+const initialToken = localStorage.getItem('token');
+if (initialToken && !microApp.getGlobalData()?.token) {
+  microApp.setGlobalData({ token: initialToken });
+}
+
+// 创建一个响应式的ref来存储全局数据
+const globalData = ref(microApp.getGlobalData());
+
+// 定义监听函数
+const dataListener = (data) => {
+  // 当数据变化时，更新ref
+  globalData.value = { ...data };
+};
+
+onMounted(() => {
+  // 组件挂载时添加监听
+  microApp.addDataListener(dataListener, true);
+});
+
+onUnmounted(() => {
+  // 组件卸载时移除监听
+  microApp.removeDataListener(dataListener);
+});
 
 const handleSelect = (key) => {
   switch (key) {
@@ -27,16 +50,13 @@ const handleSelect = (key) => {
 };
 
 function logout() {
-  loginApi.logout({}).then((res) => {
-    const { success, message } = res;
-    if (success) {
-      microApp.clearGlobalData();
-      proxy.$message.success('退出成功');
-      router.go(0);
-    } else {
-      proxy.$message.error(message);
-    }
-  });
+  // 1. 清除本地存储
+  localStorage.removeItem('token');
+  // 2. 清除micro-app全局数据
+  microApp.clearGlobalData();
+  // 3. 提示并刷新
+  proxy.$message.success('退出成功');
+  router.push({ name: 'login' }); 
 }
 </script>
 
@@ -58,12 +78,24 @@ function logout() {
         <el-menu-item index="reports">数据报告</el-menu-item>
       </el-menu>
       <div class="actions">
-        <el-button round plain size="small" v-if="globalData && globalData.token" @click="logout"
-          >退出</el-button
+        <el-button
+          round
+          size="small"
+          v-if="globalData && globalData.token"
+          @click="logout"
+          class="logout-btn"
         >
-        <el-button round plain size="small" v-else @click="() => router.push({ name: 'login' })"
-          >登录</el-button
+          退出
+        </el-button>
+        <el-button
+          round
+          size="small"
+          v-else
+          @click="() => router.push({ name: 'login' })"
+          class="login-btn"
         >
+          登录
+        </el-button>
       </div>
     </div>
   </div>
@@ -115,8 +147,30 @@ function logout() {
 
   .actions {
     .el-button {
-      width: 80px;
-      background: transparent;
+      width: 88px;
+      height: 36px;
+      border: none;
+      font-weight: 500;
+      font-size: 14px;
+      transition: all 0.3s ease;
+
+      &.login-btn {
+        background: linear-gradient(45deg, #ffd04b, #ff7e5f);
+        color: #ffffff;
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(255, 208, 75, 0.4);
+        }
+      }
+
+      &.logout-btn {
+        background-color: rgba(255, 255, 255, 0.1);
+        color: #f0f0f0;
+        &:hover {
+          background-color: rgba(255, 255, 255, 0.2);
+          color: #ffffff;
+        }
+      }
     }
   }
 }
