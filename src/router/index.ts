@@ -17,45 +17,84 @@ const routes: Array<RouteRecordRaw> = [
     },
   },
   {
-    path: '/childHomeView',
-    name: 'childHomeView',
-    component: childHomeView,
-    meta: {
-      title: '子应用-首页',
-      keepAlive: false,
-    },
-  },
-  {
-    path: '/childJob',
-    name: 'childJob',
-    component: childJob,
-    meta: {
-      title: '子应用-工作',
-      keepAlive: false,
-    },
-  },
-  {
-    path: '/childEnterprise',
-    name: 'childEnterprise',
-    component: childEnterprise,
-    meta: {
-      title: '子应用-企业',
-      keepAlive: false,
-    },
-  },
-  {
-    path: '/childAbout',
-    name: 'childAbout',
-    component: childAbout,
-    meta: {
-      title: '子应用-关于',
-      keepAlive: false,
-    },
-  },
-  {
     path: '/',
-    name: 'home',
+    redirect: '/ad-reports',
+  },
+  // --- 数据分析 ---
+  {
+    path: '/ad-reports',
+    name: 'adReports',
     component: HomeView,
+    meta: { title: '广告报表', keepAlive: false },
+  },
+  {
+    path: '/sales-analysis',
+    name: 'salesAnalysis',
+    component: childHomeView,
+    meta: { title: '销售分析', keepAlive: false },
+  },
+  {
+    path: '/acos-roi-analysis',
+    name: 'acosRoiAnalysis',
+    component: childHomeView,
+    meta: { title: 'ACoS & ROI 分析', keepAlive: false },
+  },
+  // --- 广告管理 ---
+  {
+    path: '/campaign-manage',
+    name: 'campaignManage',
+    component: childJob,
+    meta: { title: '广告计划管理', keepAlive: false },
+  },
+  {
+    path: '/campaign-create',
+    name: 'campaignCreate',
+    component: childJob,
+    meta: { title: '创建广告计划', keepAlive: false },
+  },
+  {
+    path: '/campaign-groups',
+    name: 'campaignGroups',
+    component: childJob,
+    meta: { title: '广告组 & 广告单元', keepAlive: false },
+  },
+  // --- 商品管理 ---
+  {
+    path: '/products-list',
+    name: 'productsList',
+    component: childEnterprise,
+    meta: { title: '商品列表', keepAlive: false },
+  },
+  {
+    path: '/products-filter',
+    name: 'productsFilter',
+    component: childEnterprise,
+    meta: { title: '投放商品筛选', keepAlive: false },
+  },
+  {
+    path: '/products-suggest',
+    name: 'productsSuggest',
+    component: childEnterprise,
+    meta: { title: '投放建议', keepAlive: false },
+  },
+  // --- 财务中心 ---
+  {
+    path: '/finance-spend',
+    name: 'financeSpend',
+    component: childAbout,
+    meta: { title: '广告花费明细', keepAlive: false },
+  },
+  {
+    path: '/finance-fba',
+    name: 'financeFba',
+    component: childAbout,
+    meta: { title: 'FBA费用 & 佣金', keepAlive: false },
+  },
+  {
+    path: '/finance-export',
+    name: 'financeExport',
+    component: childAbout,
+    meta: { title: '报表导出', keepAlive: false },
   },
 ];
 

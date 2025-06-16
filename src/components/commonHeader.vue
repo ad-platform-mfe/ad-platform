@@ -1,11 +1,13 @@
 <script setup>
-import { ref, getCurrentInstance, onMounted, onUnmounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, onMounted, onUnmounted, watch } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
+import { message } from 'ant-design-vue';
 import microApp from '@micro-zoe/micro-app';
 
-const activeIndex = ref('dashboard');
 const router = useRouter();
-const { proxy } = getCurrentInstance();
+const route = useRoute();
+
+const activeIndex = ref([]);
 
 // --- 初始化全局状态 ---
 const initialToken = localStorage.getItem('token');
@@ -18,45 +20,37 @@ const globalData = ref(microApp.getGlobalData());
 
 // 定义监听函数
 const dataListener = (data) => {
-  // 当数据变化时，更新ref
   globalData.value = { ...data };
 };
 
 onMounted(() => {
-  // 组件挂载时添加监听
   microApp.addDataListener(dataListener, true);
 });
 
 onUnmounted(() => {
-  // 组件卸载时移除监听
   microApp.removeDataListener(dataListener);
 });
 
-const handleSelect = (key) => {
-  switch (key) {
-    case 'dashboard':
-      router.push({ name: 'home' });
-      break;
-    case 'campaigns':
-      router.push({ name: 'childJob' });
-      break;
-    case 'audiences':
-      router.push({ name: 'childEnterprise' });
-      break;
-    case 'reports':
-      router.push({ name: 'childAbout' });
-      break;
-  }
+// 监听路由变化，更新激活菜单项
+watch(
+  () => route.name,
+  (name) => {
+    if (typeof name === 'string') {
+      activeIndex.value = [name];
+    }
+  },
+  { immediate: true },
+);
+
+const handleMenuClick = (e) => {
+  router.push({ name: e.key });
 };
 
 function logout() {
-  // 1. 清除本地存储
   localStorage.removeItem('token');
-  // 2. 清除micro-app全局数据
   microApp.clearGlobalData();
-  // 3. 提示并刷新
-  proxy.$message.success('退出成功');
-  router.push({ name: 'login' }); 
+  message.success('退出成功');
+  router.push({ name: 'login' });
 }
 </script>
 
@@ -64,38 +58,58 @@ function logout() {
   <div class="common-header">
     <div class="header-container">
       <span class="logo">星链矩阵</span>
-      <el-menu
-        :default-active="activeIndex"
-        background-color="transparent"
-        text-color="#ffffff"
-        mode="horizontal"
-        active-text-color="#ffd04b"
-        @select="handleSelect"
-      >
-        <el-menu-item index="dashboard">概览</el-menu-item>
-        <el-menu-item index="campaigns">广告系列</el-menu-item>
-        <el-menu-item index="audiences">受众管理</el-menu-item>
-        <el-menu-item index="reports">数据报告</el-menu-item>
-      </el-menu>
-      <div class="actions">
-        <el-button
-          round
-          size="small"
-          v-if="globalData && globalData.token"
-          @click="logout"
-          class="logout-btn"
+      <div class="menu-container">
+        <a-menu
+          v-model:selectedKeys="activeIndex"
+          theme="dark"
+          mode="horizontal"
+          :style="{
+            lineHeight: '60px',
+            backgroundColor: '#202329',
+            flex: 1,
+            justifyContent: 'center',
+          }"
+          @click="handleMenuClick"
         >
+          <a-sub-menu key="data-analysis">
+            <template #title>数据分析</template>
+            <a-menu-item key="adReports">广告报表</a-menu-item>
+            <a-menu-item key="salesAnalysis">销售分析</a-menu-item>
+            <a-menu-item key="acosRoiAnalysis">ACoS & ROI 分析</a-menu-item>
+          </a-sub-menu>
+          <a-sub-menu key="ad-management">
+            <template #title>广告管理</template>
+            <a-menu-item key="campaignManage">广告计划管理</a-menu-item>
+            <a-menu-item key="campaignCreate">创建广告计划</a-menu-item>
+            <a-menu-item key="campaignGroups">广告组 & 广告单元</a-menu-item>
+          </a-sub-menu>
+          <a-sub-menu key="product-management">
+            <template #title>商品管理</template>
+            <a-menu-item key="productsList">商品列表</a-menu-item>
+            <a-menu-item key="productsFilter">投放商品筛选</a-menu-item>
+            <a-menu-item key="productsSuggest">投放建议</a-menu-item>
+          </a-sub-menu>
+          <a-sub-menu key="finance-center">
+            <template #title>财务中心</template>
+            <a-menu-item key="financeSpend">广告花费明细</a-menu-item>
+            <a-menu-item key="financeFba">FBA费用 & 佣金</a-menu-item>
+            <a-menu-item key="financeExport">报表导出</a-menu-item>
+          </a-sub-menu>
+        </a-menu>
+      </div>
+      <div class="actions">
+        <a-button v-if="globalData && globalData.token" @click="logout" class="logout-btn" ghost>
           退出
-        </el-button>
-        <el-button
-          round
-          size="small"
+        </a-button>
+        <a-button
           v-else
-          @click="() => router.push({ name: 'login' })"
+          type="primary"
+          shape="round"
           class="login-btn"
+          @click="() => router.push({ name: 'login' })"
         >
           登录
-        </el-button>
+        </a-button>
       </div>
     </div>
   </div>
@@ -107,6 +121,8 @@ function logout() {
   height: 60px;
   display: flex;
   justify-content: center;
+  position: relative;
+  z-index: 100;
 
   .header-container {
     width: 1200px;
@@ -120,56 +136,33 @@ function logout() {
     font-size: 24px;
     font-weight: bold;
     cursor: pointer;
+    margin-right: 40px;
   }
 
-  .el-menu {
-    flex: 1;
-    height: 100%;
-    border-bottom: none;
+  .menu-container {
     display: flex;
-    justify-content: center;
-    background-color: transparent;
-
-    &.el-menu--horizontal {
-      border-bottom: none;
-    }
-
-    .el-menu-item {
-      height: 100%;
-      background-color: transparent !important;
-
-      &:hover {
-        background-color: transparent !important;
-        color: #ffd04b !important;
-      }
-    }
+    flex: 1;
+    margin-right: 300px;
   }
 
   .actions {
-    .el-button {
-      width: 88px;
-      height: 36px;
-      border: none;
-      font-weight: 500;
-      font-size: 14px;
-      transition: all 0.3s ease;
+    margin-left: 40px;
 
-      &.login-btn {
-        background: linear-gradient(45deg, #ffd04b, #ff7e5f);
-        color: #ffffff;
-        &:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(255, 208, 75, 0.4);
-        }
+    .login-btn {
+      background: linear-gradient(45deg, #ffd04b, #ff7e5f);
+      border-color: transparent;
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(255, 208, 75, 0.4);
       }
+    }
 
-      &.logout-btn {
-        background-color: rgba(255, 255, 255, 0.1);
-        color: #f0f0f0;
-        &:hover {
-          background-color: rgba(255, 255, 255, 0.2);
-          color: #ffffff;
-        }
+    .logout-btn {
+      border-color: #f0f0f0;
+      color: #f0f0f0;
+      &:hover {
+        border-color: #ffffff;
+        color: #ffffff;
       }
     }
   }

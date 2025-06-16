@@ -3,8 +3,8 @@ import './assets/main.css';
 import { createApp } from 'vue';
 import App from './App.vue';
 import router from './router';
-import ElementPlus from 'element-plus';
-import 'element-plus/dist/index.css';
+import Antd from 'ant-design-vue';
+import 'ant-design-vue/dist/reset.css';
 import microApp from '@micro-zoe/micro-app';
 
 // 初始化 micro-app
@@ -15,7 +15,7 @@ microApp.start({
         {
           // 开启 esmodule 模式，适用于 Vite 子应用
           esmodule: true,
-        },
+        } as any,
       ],
     },
   },
@@ -23,5 +23,5 @@ microApp.start({
 
 const app = createApp(App);
 app.use(router);
-app.use(ElementPlus);
+app.use(Antd);
 app.mount('#app');

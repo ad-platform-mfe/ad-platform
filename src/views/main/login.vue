@@ -1,11 +1,12 @@
 <script setup>
 import { useRouter } from 'vue-router';
-import { reactive, ref, computed, getCurrentInstance } from 'vue';
+import { reactive, ref, computed } from 'vue';
+import { message } from 'ant-design-vue';
+import { UserOutlined, LockOutlined, MailOutlined, KeyOutlined } from '@ant-design/icons-vue';
 import loginApi from '@/api/loginApi';
 import microApp from '@micro-zoe/micro-app';
 
 const router = useRouter();
-const { proxy } = getCurrentInstance();
 
 // --- 状态管理 ---
 const formMode = ref('login'); // 'login', 'register', 'forgot', 'reset'
@@ -134,105 +135,103 @@ const resetPasswordRules = {
 // --- 提交处理函数 ---
 const handleLoginSuccess = (data) => {
   const { token } = data;
-  // 1. 本地存储token
   localStorage.setItem('token', token);
-  // 2. 设置全局数据，通知其他应用
   microApp.setGlobalData({ token: token });
-  // 3. 提示并跳转
-  proxy.$message.success('登录成功');
+  message.success('登录成功');
   router.push('/');
 };
 
 const onAccountLogin = async () => {
-  if (!accountFormRef.value) return;
-  await accountFormRef.value.validate((valid) => {
-    if (valid) {
-      loginApi.accountLogin(accountLoginForm).then((res) => {
-        if (!res.code) handleLoginSuccess(res.data);
-        else proxy.$message.error(res.message);
-      });
-    }
-  });
+  try {
+    await accountFormRef.value.validate();
+    const res = await loginApi.accountLogin(accountLoginForm);
+    if (!res.code) handleLoginSuccess(res.data);
+    else message.error(res.message);
+  } catch (error) {
+    console.error('账号登录失败:', error);
+    message.error('登录失败，请稍后重试');
+  }
 };
 
 const onSendCode = async () => {
-  if (!emailLoginFormRef.value || isSendingCode.value) return;
-  emailLoginFormRef.value.validateField('email', (isValid) => {
-    if (isValid) {
-      loginApi.sendLoginCode({ email: emailLoginForm.email }).then((res) => {
-        if (!res.code) {
-          proxy.$message.success('验证码已发送，请注意查收');
-          startCountdown();
-        } else {
-          proxy.$message.error(res.message);
-        }
-      });
+  if (isSendingCode.value) return;
+  try {
+    await emailLoginFormRef.value.validateFields(['email']);
+    isSendingCode.value = true;
+    const res = await loginApi.sendLoginCode({ email: emailLoginForm.email });
+    if (!res.code) {
+      message.success('验证码已发送，请注意查收');
+      startCountdown();
+    } else {
+      message.error(res.message);
+      isSendingCode.value = false;
     }
-  });
+  } catch (error) {
+    isSendingCode.value = false;
+    console.error('发送验证码失败:', error);
+    message.error('发送验证码失败，请稍后重试。');
+  }
 };
 
 const onEmailLogin = async () => {
-  if (!emailLoginFormRef.value) return;
-  await emailLoginFormRef.value.validate((valid) => {
-    if (valid) {
-      loginApi.loginWithCode(emailLoginForm).then((res) => {
-        if (!res.code) handleLoginSuccess(res.data);
-        else proxy.$message.error(res.message);
-      });
-    }
-  });
+  try {
+    await emailLoginFormRef.value.validate();
+    const res = await loginApi.loginWithCode(emailLoginForm);
+    if (!res.code) handleLoginSuccess(res.data);
+    else message.error(res.message);
+  } catch (error) {
+    console.error('邮箱登录失败:', error);
+    message.error('登录失败，请稍后重试');
+  }
 };
 
 const onRegister = async () => {
-  if (!registerFormRef.value) return;
-  await registerFormRef.value.validate((valid) => {
-    if (valid) {
-      loginApi.register(registerForm).then((res) => {
-        const { code, message } = res;
-        if (!code) {
-          proxy.$message.success('注册成功，请登录！');
-          formMode.value = 'login';
-        } else {
-          proxy.$message.error(message);
-        }
-      });
+  try {
+    await registerFormRef.value.validate();
+    const res = await loginApi.register(registerForm);
+    if (!res.code) {
+      message.success('注册成功，请登录！');
+      formMode.value = 'login';
+    } else {
+      message.error(res.message);
     }
-  });
+  } catch (error) {
+    console.error('注册失败:', error);
+    message.error('注册失败，请稍后重试');
+  }
 };
 
 const onForgotPassword = async () => {
-  if (!forgotFormRef.value) return;
-  await forgotFormRef.value.validate((valid) => {
-    if (valid) {
-      loginApi.forgotPassword({ email: forgotForm.email }).then((res) => {
-        const { code, message } = res;
-        if (!code) {
-          proxy.$message.success('验证码已发送，请查收邮件并重置密码。');
-          resetPasswordForm.email = forgotForm.email;
-          formMode.value = 'reset';
-        } else {
-          proxy.$message.error(message);
-        }
-      });
+  try {
+    await forgotFormRef.value.validate();
+    const res = await loginApi.forgotPassword({ email: forgotForm.email });
+    if (!res.code) {
+      message.success('验证码已发送，请查收邮件并重置密码。');
+      resetPasswordForm.email = forgotForm.email;
+      formMode.value = 'reset';
+    } else {
+      message.error(res.message);
     }
-  });
+  } catch (error) {
+    console.error('请求忘记密码失败:', error);
+    message.error('操作失败，请稍后重试');
+  }
 };
 
 const onResetPassword = async () => {
-  if (!resetPasswordFormRef.value) return;
-  await resetPasswordFormRef.value.validate((valid) => {
-    if (valid) {
-      loginApi.resetPassword(resetPasswordForm).then((res) => {
-        const { code, message } = res;
-        if (!code) {
-          proxy.$message.success('密码重置成功，请使用新密码登录。');
-          formMode.value = 'login';
-        } else {
-          proxy.$message.error(message);
-        }
-      });
+  try {
+    await resetPasswordFormRef.value.validate();
+    const res = await loginApi.resetPassword(resetPasswordForm);
+    if (!res.code) {
+      message.success('密码重置成功，请使用新密码登录。');
+      formMode.value = 'login';
+    } else {
+      message.error(res.message);
     }
-  });
+  } catch (error) {
+    console.error('重置密码失败:', error);
+    message.error('密码重置失败，请稍后重试');
+  }
 };
 </script>
 
@@ -257,208 +256,215 @@ const onResetPassword = async () => {
           </div>
         </div>
         <div class="panel-r-redesigned">
-          <div v-if="formMode === 'login'">
-            <el-tabs v-model="loginMethod" class="login-tabs" stretch>
-              <el-tab-pane label="账号密码登录" name="account"></el-tab-pane>
-              <el-tab-pane label="邮箱验证码登录" name="email"></el-tab-pane>
-            </el-tabs>
+          <!-- 主登录/注册/忘记密码容器 -->
+          <div v-if="formMode === 'login'" class="form-container">
+            <a-tabs v-model:activeKey="loginMethod" centered class="login-tabs">
+              <a-tab-pane key="account" tab="账号密码登录"></a-tab-pane>
+              <a-tab-pane key="email" tab="邮箱验证码登录"></a-tab-pane>
+            </a-tabs>
 
             <!-- 账号密码登录表单 -->
-            <el-form
+            <a-form
               v-if="loginMethod === 'account'"
               ref="accountFormRef"
               :model="accountLoginForm"
               :rules="accountLoginRules"
-              size="large"
-              class="login-form-redesigned"
+              class="login-form"
+              @finish="onAccountLogin"
             >
-              <el-form-item prop="username">
-                <el-input
-                  v-model="accountLoginForm.username"
+              <a-form-item name="username">
+                <a-input
+                  v-model:value="accountLoginForm.username"
                   placeholder="请输入用户名"
-                  prefix-icon="User"
-                />
-              </el-form-item>
-              <el-form-item prop="password">
-                <el-input
-                  type="password"
-                  v-model="accountLoginForm.password"
-                  placeholder="请输入密码"
-                  show-password
-                  prefix-icon="Lock"
-                  @keyup.enter="onAccountLogin"
-                />
-              </el-form-item>
-              <el-form-item>
-                <el-button type="primary" class="login-btn-redesigned" @click="onAccountLogin"
-                  >登 录</el-button
+                  size="large"
                 >
-              </el-form-item>
+                  <template #prefix> <UserOutlined /> </template>
+                </a-input>
+              </a-form-item>
+              <a-form-item name="password">
+                <a-input-password
+                  v-model:value="accountLoginForm.password"
+                  placeholder="请输入密码"
+                  size="large"
+                >
+                  <template #prefix> <LockOutlined /> </template>
+                </a-input-password>
+              </a-form-item>
+              <a-form-item>
+                <a-button type="primary" html-type="submit" size="large" class="login-btn">
+                  登 录
+                </a-button>
+              </a-form-item>
               <div class="form-footer">
-                <el-link type="primary" @click="formMode = 'forgot'">忘记密码?</el-link>
-                <el-link type="primary" @click="formMode = 'register'">注册新账号</el-link>
+                <a-button type="link" @click="formMode = 'forgot'">忘记密码?</a-button>
+                <a-button type="link" @click="formMode = 'register'">注册新账号</a-button>
               </div>
-            </el-form>
+            </a-form>
 
             <!-- 邮箱验证码登录表单 -->
-            <el-form
+            <a-form
               v-if="loginMethod === 'email'"
               ref="emailLoginFormRef"
               :model="emailLoginForm"
               :rules="emailLoginRules"
-              size="large"
-              class="login-form-redesigned"
+              class="login-form"
+              @finish="onEmailLogin"
             >
-              <el-form-item prop="email">
-                <el-input
-                  v-model="emailLoginForm.email"
+              <a-form-item name="email">
+                <a-input
+                  v-model:value="emailLoginForm.email"
                   placeholder="请输入邮箱地址"
-                  prefix-icon="Message"
+                  size="large"
                 >
-                  <template #append>
-                    <el-button @click="onSendCode" :disabled="isSendingCode">
-                      {{ isSendingCode ? `${countdown}s 后重发` : '获取验证码' }}
-                    </el-button>
-                  </template>
-                </el-input>
-              </el-form-item>
-              <el-form-item prop="code">
-                <el-input
-                  v-model="emailLoginForm.code"
-                  placeholder="请输入6位验证码"
-                  prefix-icon="Key"
-                  @keyup.enter="onEmailLogin"
-                />
-              </el-form-item>
-              <el-form-item>
-                <el-button type="primary" class="login-btn-redesigned" @click="onEmailLogin"
-                  >登 录</el-button
-                >
-              </el-form-item>
-            </el-form>
+                  <template #prefix> <MailOutlined /> </template>
+                </a-input>
+              </a-form-item>
+              <a-form-item name="code">
+                <a-input-group compact>
+                  <a-input
+                    v-model:value="emailLoginForm.code"
+                    placeholder="请输入验证码"
+                    size="large"
+                    style="width: calc(100% - 130px)"
+                  />
+                  <a-button
+                    size="large"
+                    @click="onSendCode"
+                    :disabled="isSendingCode"
+                    :loading="isSendingCode"
+                    style="width: 130px"
+                  >
+                    {{ isSendingCode ? `${countdown}s` : '获取验证码' }}
+                  </a-button>
+                </a-input-group>
+              </a-form-item>
+              <a-form-item>
+                <a-button type="primary" html-type="submit" size="large" class="login-btn">
+                  登 录
+                </a-button>
+              </a-form-item>
+            </a-form>
           </div>
 
-          <!-- 注册表单 -->
-          <el-form
-            v-if="formMode === 'register'"
-            ref="registerFormRef"
-            :model="registerForm"
-            :rules="registerRules"
-            size="large"
-            class="login-form-redesigned"
-          >
-            <el-form-item prop="email">
-              <el-input
-                v-model="registerForm.email"
-                placeholder="请输入邮箱"
-                prefix-icon="Message"
-              ></el-input>
-            </el-form-item>
-            <el-form-item prop="password">
-              <el-input
-                type="password"
-                v-model="registerForm.password"
-                placeholder="请输入密码"
-                show-password
-                prefix-icon="Lock"
-                @keyup.enter="onRegister"
-              ></el-input>
-            </el-form-item>
-            <el-form-item prop="confirmPassword">
-              <el-input
-                type="password"
-                v-model="registerForm.confirmPassword"
-                placeholder="请再次输入密码"
-                show-password
-                prefix-icon="Lock"
-                @keyup.enter="onRegister"
-              ></el-input>
-            </el-form-item>
-            <el-form-item>
-              <el-button type="primary" class="login-btn-redesigned" @click="onRegister"
-                >注 册</el-button
-              >
-            </el-form-item>
-            <div class="form-footer">
-              <el-link type="primary" @click="formMode = 'login'">已有账号？返回登录</el-link>
-            </div>
-          </el-form>
+          <!-- 注册和忘记密码等其他表单 -->
+          <div v-else class="form-container">
+            <h2 class="form-title-standalone">{{ formTitle }}</h2>
+            <!-- 注册表单 -->
+            <a-form
+              v-if="formMode === 'register'"
+              ref="registerFormRef"
+              :model="registerForm"
+              :rules="registerRules"
+              class="login-form"
+              @finish="onRegister"
+            >
+              <a-form-item name="email">
+                <a-input v-model:value="registerForm.email" placeholder="请输入邮箱" size="large">
+                  <template #prefix> <MailOutlined /> </template>
+                </a-input>
+              </a-form-item>
+              <a-form-item name="password">
+                <a-input-password
+                  v-model:value="registerForm.password"
+                  placeholder="请输入密码"
+                  size="large"
+                >
+                  <template #prefix> <LockOutlined /> </template>
+                </a-input-password>
+              </a-form-item>
+              <a-form-item name="confirmPassword">
+                <a-input-password
+                  v-model:value="registerForm.confirmPassword"
+                  placeholder="请再次输入密码"
+                  size="large"
+                >
+                  <template #prefix> <LockOutlined /> </template>
+                </a-input-password>
+              </a-form-item>
+              <a-form-item>
+                <a-button type="primary" html-type="submit" size="large" class="login-btn">
+                  注 册
+                </a-button>
+              </a-form-item>
+              <div class="form-footer">
+                <a-button type="link" @click="formMode = 'login'">已有账号？返回登录</a-button>
+              </div>
+            </a-form>
 
-          <!-- 忘记密码表单 -->
-          <el-form
-            v-if="formMode === 'forgot'"
-            ref="forgotFormRef"
-            :model="forgotForm"
-            :rules="forgotRules"
-            size="large"
-            class="login-form-redesigned"
-          >
-            <p class="form-description">请输入您的注册邮箱，我们将向该邮箱发送密码重置验证码。</p>
-            <el-form-item prop="email">
-              <el-input
-                v-model="forgotForm.email"
-                placeholder="请输入邮箱"
-                prefix-icon="Message"
-                @keyup.enter="onForgotPassword"
-              ></el-input>
-            </el-form-item>
-            <el-form-item>
-              <el-button type="primary" class="login-btn-redesigned" @click="onForgotPassword"
-                >发送验证码</el-button
-              >
-            </el-form-item>
-            <div class="form-footer">
-              <el-link type="primary" @click="formMode = 'login'">返回登录</el-link>
-            </div>
-          </el-form>
+            <!-- 忘记密码表单 -->
+            <a-form
+              v-if="formMode === 'forgot'"
+              ref="forgotFormRef"
+              :model="forgotForm"
+              :rules="forgotRules"
+              class="login-form"
+              @finish="onForgotPassword"
+            >
+              <p class="form-description">请输入您的注册邮箱，我们将向该邮箱发送密码重置验证码。</p>
+              <a-form-item name="email">
+                <a-input v-model:value="forgotForm.email" placeholder="请输入邮箱" size="large">
+                  <template #prefix> <MailOutlined /> </template>
+                </a-input>
+              </a-form-item>
+              <a-form-item>
+                <a-button type="primary" html-type="submit" size="large" class="login-btn">
+                  发送验证码
+                </a-button>
+              </a-form-item>
+              <div class="form-footer">
+                <a-button type="link" @click="formMode = 'login'">返回登录</a-button>
+              </div>
+            </a-form>
 
-          <!-- 重置密码表单 -->
-          <el-form
-            v-if="formMode === 'reset'"
-            ref="resetPasswordFormRef"
-            :model="resetPasswordForm"
-            :rules="resetPasswordRules"
-            size="large"
-            class="login-form-redesigned"
-          >
-            <p class="form-description">
-              验证码已发送至 <strong>{{ resetPasswordForm.email }}</strong>
-            </p>
-            <el-form-item prop="code">
-              <el-input
-                v-model="resetPasswordForm.code"
-                placeholder="请输入邮箱验证码"
-                prefix-icon="Key"
-              ></el-input>
-            </el-form-item>
-            <el-form-item prop="password">
-              <el-input
-                type="password"
-                v-model="resetPasswordForm.password"
-                placeholder="请输入新密码"
-                show-password
-                prefix-icon="Lock"
-              ></el-input>
-            </el-form-item>
-            <el-form-item prop="confirmPassword">
-              <el-input
-                type="password"
-                v-model="resetPasswordForm.confirmPassword"
-                placeholder="请再次输入新密码"
-                show-password
-                prefix-icon="Lock"
-                @keyup.enter="onResetPassword"
-              ></el-input>
-            </el-form-item>
-            <el-form-item>
-              <el-button type="primary" class="login-btn-redesigned" @click="onResetPassword"
-                >确认重置密码</el-button
-              >
-            </el-form-item>
-            <div class="form-footer">
-              <el-link type="primary" @click="formMode = 'login'">返回登录</el-link>
-            </div>
-          </el-form>
+            <!-- 重置密码表单 -->
+            <a-form
+              v-if="formMode === 'reset'"
+              ref="resetPasswordFormRef"
+              :model="resetPasswordForm"
+              :rules="resetPasswordRules"
+              class="login-form"
+              @finish="onResetPassword"
+            >
+              <p class="form-description">
+                验证码已发送至 <strong>{{ resetPasswordForm.email }}</strong>
+              </p>
+              <a-form-item name="code">
+                <a-input
+                  v-model:value="resetPasswordForm.code"
+                  placeholder="请输入邮箱验证码"
+                  size="large"
+                >
+                  <template #prefix> <KeyOutlined /> </template>
+                </a-input>
+              </a-form-item>
+              <a-form-item name="password">
+                <a-input-password
+                  v-model:value="resetPasswordForm.password"
+                  placeholder="请输入新密码"
+                  size="large"
+                >
+                  <template #prefix> <LockOutlined /> </template>
+                </a-input-password>
+              </a-form-item>
+              <a-form-item name="confirmPassword">
+                <a-input-password
+                  v-model:value="resetPasswordForm.confirmPassword"
+                  placeholder="请再次输入新密码"
+                  size="large"
+                >
+                  <template #prefix> <LockOutlined /> </template>
+                </a-input-password>
+              </a-form-item>
+              <a-form-item>
+                <a-button type="primary" html-type="submit" size="large" class="login-btn">
+                  确认重置密码
+                </a-button>
+              </a-form-item>
+              <div class="form-footer">
+                <a-button type="link" @click="formMode = 'login'">返回登录</a-button>
+              </div>
+            </a-form>
+          </div>
         </div>
       </div>
     </main>
@@ -473,7 +479,6 @@ const onResetPassword = async () => {
   min-height: 100vh;
   background-color: #f0f2f5;
   font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  color: #303133;
 }
 
 .login-main-content {
@@ -555,70 +560,42 @@ const onResetPassword = async () => {
   display: flex;
   flex-direction: column;
   justify-content: center;
+}
 
-  h2 {
-    display: none;
+.login-tabs {
+  margin-bottom: 25px;
+}
+
+.login-form {
+  .ant-form-item {
+    margin-bottom: 25px;
   }
 }
 
-.login-form-redesigned {
-  .form-description {
-    font-size: 14px;
-    color: #606266;
-    margin-bottom: 25px;
-    text-align: center;
-    line-height: 1.5;
-  }
-  .el-form-item {
-    margin-bottom: 25px;
-  }
-  .el-input {
-    :deep(.el-input__wrapper) {
-      border-radius: 4px;
-      padding: 2px 12px;
-    }
-    :deep(.el-input__inner) {
-      height: 42px;
-      line-height: 42px;
-    }
-  }
+.form-title-standalone {
+  font-size: 24px;
+  font-weight: 600;
+  color: #303133;
+  margin-bottom: 30px;
+  text-align: center;
 }
 
-.login-btn-redesigned {
+.form-description {
+  font-size: 14px;
+  color: #606266;
+  margin-bottom: 25px;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.login-btn {
   width: 100%;
-  height: 44px;
-  font-size: 16px;
-  border-radius: 4px;
-  background-color: #1677ff;
-  border-color: #1677ff;
-  &:hover {
-    background-color: #409eff;
-    border-color: #409eff;
-  }
-  &:active {
-    background-color: #0052cc;
-    border-color: #0052cc;
-  }
 }
 
 .form-footer {
   display: flex;
   justify-content: space-between;
-  margin-top: 15px;
-  font-size: 14px;
-}
-
-.login-tabs {
-  margin-bottom: 25px;
-  :deep(.el-tabs__header) {
-    margin: 0;
-  }
-  :deep(.el-tabs__nav-wrap::after) {
-    height: 1px;
-  }
-  :deep(.el-tabs__item) {
-    font-size: 16px;
-  }
+  margin-top: -10px;
 }
 
 // 响应式设计
@@ -652,7 +629,7 @@ const onResetPassword = async () => {
   .panel-l-redesigned .info-section ul li {
     font-size: 14px;
   }
-  .panel-r-redesigned h2 {
+  .form-title-standalone {
     font-size: 22px;
   }
 }
