@@ -241,7 +241,7 @@ const onResetPassword = async () => {
       <div class="login-panel-redesigned">
         <div class="panel-l-redesigned">
           <div class="info-section">
-            <h3>星链矩阵</h3>
+            <h3>汇量千川</h3>
             <h2>高效触达，精准投放</h2>
             <p>新一代数字化广告平台，助力您的业务增长。</p>
             <ul>

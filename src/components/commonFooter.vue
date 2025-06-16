@@ -1,22 +1,22 @@
 <script setup></script>
 
 <template>
-  <div class="common-footer">
-    <p>Copyright 2018-2023 技术支持单位：bytedance.com</p>
-  </div>
+  <footer class="common-footer">
+    <p>&copy; 2018-2023 汇量千川. All Rights Reserved. 技术支持：bytedance.com</p>
+  </footer>
 </template>
 
 <style scoped lang="scss">
 .common-footer {
-  position: fixed;
-  bottom: 0;
-  background: #000;
-  box-sizing: border-box;
-  width: 100%;
+  background-color: #1e293b;
+  color: #94a3b8;
+  padding: 24px 50px;
+  text-align: center;
+  font-size: 14px;
+  border-top: 1px solid #334155;
+
   p {
-    color: hsla(0, 0%, 100%, 0.5);
-    font-size: 12px;
-    text-align: center;
+    margin: 0;
   }
 }
 </style>
