@@ -27,6 +27,11 @@ microApp.start({
           esmodule: true,
         } as any,
       ],
+      'ad-finance': [
+        {
+          esmodule: true,
+        } as any,
+      ],
     },
   },
 });

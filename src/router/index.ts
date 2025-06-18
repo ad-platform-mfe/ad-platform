@@ -2,9 +2,9 @@ import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import login from '@/views/main/login.vue';
 import childHomeView from '@/views/child/childHome.vue';
 import childJob from '@/views/child/childJob.vue';
-import childEnterprise from '@/views/child/childEnterprise.vue';
-import childAbout from '@/views/child/childAbout.vue';
-import HomeView from '@/views/main/HomeView.vue';
+import adFinance from '@/views/child/ad-finance.vue';
+import adMaterial from '@/views/main/ad-material.vue';
+import adShop from '@/views/child/ad-shop.vue';
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -24,7 +24,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/ad-reports',
     name: 'adReports',
-    component: HomeView,
+    component: adMaterial,
     meta: { title: '广告报表', keepAlive: false },
   },
   {
@@ -62,38 +62,38 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/products-list',
     name: 'productsList',
-    component: childEnterprise,
+    component: adShop,
     meta: { title: '商品列表', keepAlive: false },
   },
   {
     path: '/products-filter',
     name: 'productsFilter',
-    component: childEnterprise,
+    component: adShop,
     meta: { title: '投放商品筛选', keepAlive: false },
   },
   {
     path: '/products-suggest',
     name: 'productsSuggest',
-    component: childEnterprise,
+    component: adShop,
     meta: { title: '投放建议', keepAlive: false },
   },
   // --- 财务中心 ---
   {
     path: '/finance-spend',
     name: 'financeSpend',
-    component: childAbout,
+    component: adFinance,
     meta: { title: '广告花费明细', keepAlive: false },
   },
   {
     path: '/finance-fba',
     name: 'financeFba',
-    component: childAbout,
+    component: adFinance,
     meta: { title: 'FBA费用 & 佣金', keepAlive: false },
   },
   {
     path: '/finance-export',
     name: 'financeExport',
-    component: childAbout,
+    component: adFinance,
     meta: { title: '报表导出', keepAlive: false },
   },
 ];
