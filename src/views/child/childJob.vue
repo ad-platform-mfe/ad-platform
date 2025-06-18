@@ -2,7 +2,7 @@
 
 <template>
   <div>
-    <micro-app name="childJob" url="http://localhost:8080" iframe></micro-app>
+    <micro-app name="ad-material" url="http://localhost:5176/" iframe></micro-app>
   </div>
 </template>
 

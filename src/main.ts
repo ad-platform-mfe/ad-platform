@@ -17,6 +17,16 @@ microApp.start({
           esmodule: true,
         } as any,
       ],
+      'ad-material': [
+        {
+          esmodule: true,
+        } as any,
+      ],
+      'ad-shop': [
+        {
+          esmodule: true,
+        } as any,
+      ],
     },
   },
 });

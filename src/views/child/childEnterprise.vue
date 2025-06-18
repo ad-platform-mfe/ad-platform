@@ -1,9 +1,8 @@
-<script setup>
-</script>
+<script setup></script>
 
 <template>
   <div>
- 子应用-找企业
+    <micro-app name="ad-shop" url="http://localhost:5173/" iframe></micro-app>
   </div>
 </template>
 
