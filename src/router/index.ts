@@ -1,9 +1,8 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router';
 import login from '@/views/main/login.vue';
-import childHomeView from '@/views/child/childHome.vue';
-import childJob from '@/views/child/childJob.vue';
 import adFinance from '@/views/child/ad-finance.vue';
-import adMaterial from '@/views/main/ad-material.vue';
+import adHome from '@/views/main/ad-home.vue';
+import adMaterial from '@/views/child/ad-material.vue';
 import adShop from '@/views/child/ad-shop.vue';
 
 const routes: Array<RouteRecordRaw> = [
@@ -24,38 +23,38 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/ad-reports',
     name: 'adReports',
-    component: adMaterial,
+    component: adHome,
     meta: { title: '广告报表', keepAlive: false },
   },
   {
     path: '/sales-analysis',
     name: 'salesAnalysis',
-    component: childHomeView,
+    component: adHome,
     meta: { title: '销售分析', keepAlive: false },
   },
   {
     path: '/acos-roi-analysis',
     name: 'acosRoiAnalysis',
-    component: childHomeView,
+    component: adHome,
     meta: { title: 'ACoS & ROI 分析', keepAlive: false },
   },
   // --- 广告管理 ---
   {
     path: '/campaign-manage',
     name: 'campaignManage',
-    component: childJob,
+    component: adMaterial,
     meta: { title: '广告计划管理', keepAlive: false },
   },
   {
     path: '/campaign-create',
     name: 'campaignCreate',
-    component: childJob,
+    component: adMaterial,
     meta: { title: '创建广告计划', keepAlive: false },
   },
   {
     path: '/campaign-groups',
     name: 'campaignGroups',
-    component: childJob,
+    component: adMaterial,
     meta: { title: '广告组 & 广告单元', keepAlive: false },
   },
   // --- 商品管理 ---
