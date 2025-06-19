@@ -52,6 +52,15 @@ function logout() {
   message.success('退出成功');
   router.push({ name: 'login' });
 }
+
+function testGlobalData() {
+  const testData = {
+    from: '主应用 commonHeader',
+    timestamp: Date.now(),
+  };
+  microApp.setGlobalData(testData);
+  message.info('已发送测试全局数据，请在子应用控制台查看。');
+}
 </script>
 
 <template>
@@ -84,7 +93,7 @@ function logout() {
           >
             <template #title>广告管理</template>
             <a-menu-item key="campaignManage">广告计划管理</a-menu-item>
-            <a-menu-item key="campaignCreate">创建广告计划</a-menu-item>
+            <a-menu-item key="adReview">广告审核</a-menu-item>
             <a-menu-item key="campaignGroups">广告组 & 广告单元</a-menu-item>
           </a-sub-menu>
           <a-sub-menu
@@ -107,9 +116,22 @@ function logout() {
             <a-menu-item key="financeFba">FBA费用 & 佣金</a-menu-item>
             <a-menu-item key="financeExport">报表导出</a-menu-item>
           </a-sub-menu>
+          <a-sub-menu
+            key="customer-service"
+            popup-class-name="header-submenu-popup"
+            :popup-offset="[-18, 1]"
+          >
+            <template #title>客服中心</template>
+            <a-menu-item key="customer-service">客服中心</a-menu-item>
+            <a-menu-item key="customer-message">申诉中心</a-menu-item>
+            <a-menu-item key="customer-setting">客服配置</a-menu-item>
+          </a-sub-menu>
         </a-menu>
       </div>
       <div class="actions">
+        <a-button @click="testGlobalData" type="primary" style="margin-right: 15px">
+          测试全局通信
+        </a-button>
         <a-button v-if="globalData && globalData.token" @click="logout" class="logout-btn" ghost>
           退出
         </a-button>

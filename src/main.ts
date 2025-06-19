@@ -9,24 +9,6 @@ import microApp from '@micro-zoe/micro-app';
 
 // 初始化 micro-app
 microApp.start({
-  preFetchApps: [
-    {
-      name: 'ad-home',
-      url: 'http://localhost:5175/',
-    },
-    {
-      name: 'ad-material',
-      url: 'http://localhost:5176/',
-    },
-    {
-      name: 'ad-shop',
-      url: 'http://localhost:5173/',
-    },
-    {
-      name: 'ad-finance',
-      url: 'http://localhost:5179/',
-    },
-  ],
   plugins: {
     modules: {
       'ad-home': [
@@ -50,8 +32,19 @@ microApp.start({
           esmodule: true,
         } as any,
       ],
+      'ad-service': [
+        {
+          esmodule: true,
+        } as any,
+      ],
     },
   },
+  // preFetchApps: [
+  //   { name: 'ad-home', url: 'http://localhost:5175/' },
+  //   { name: 'ad-material', url: 'http://localhost:5176/' },
+  //   { name: 'ad-shop', url: 'http://localhost:5173/' },
+  //   { name: 'ad-finance', url: 'http://localhost:5179/' },
+  // ],
 });
 
 const app = createApp(App);

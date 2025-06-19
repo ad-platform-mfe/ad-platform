@@ -4,6 +4,7 @@ import adFinance from '@/views/child/ad-finance.vue';
 import adHome from '@/views/main/ad-home.vue';
 import adMaterial from '@/views/child/ad-material.vue';
 import adShop from '@/views/child/ad-shop.vue';
+import CustomerService from '@/views/child/ad-service.vue';
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -46,10 +47,10 @@ const routes: Array<RouteRecordRaw> = [
     meta: { title: '广告计划管理', keepAlive: false },
   },
   {
-    path: '/campaign-create',
-    name: 'campaignCreate',
+    path: '/ad-review',
+    name: 'adReview',
     component: adMaterial,
-    meta: { title: '创建广告计划', keepAlive: false },
+    meta: { title: '广告审核', keepAlive: false },
   },
   {
     path: '/campaign-groups',
@@ -94,6 +95,13 @@ const routes: Array<RouteRecordRaw> = [
     name: 'financeExport',
     component: adFinance,
     meta: { title: '报表导出', keepAlive: false },
+  },
+  // --- 客服中心 ---
+  {
+    path: '/customer-service',
+    name: 'customer-service',
+    component: CustomerService,
+    meta: { title: '客服中心', keepAlive: false },
   },
 ];
 
