@@ -3,10 +3,13 @@ import { useRouter } from 'vue-router';
 import { reactive, ref, computed } from 'vue';
 import { message } from 'ant-design-vue';
 import { UserOutlined, LockOutlined, MailOutlined, KeyOutlined } from '@ant-design/icons-vue';
+import { getMe } from '@/api/userApi';
 import loginApi from '@/api/loginApi';
 import microApp from '@micro-zoe/micro-app';
+import { useUserStore } from '@/store/user';
 
 const router = useRouter();
+const userStore = useUserStore();
 
 // --- 状态管理 ---
 const formMode = ref('login'); // 'login', 'register', 'forgot', 'reset'
@@ -133,20 +136,36 @@ const resetPasswordRules = {
 };
 
 // --- 提交处理函数 ---
-const handleLoginSuccess = (data) => {
+const handleLoginSuccess = async (data) => {
   const { token } = data;
-  localStorage.setItem('token', token);
+  userStore.setToken(token);
   microApp.setGlobalData({ token: token });
-  message.success('登录成功');
-  router.push('/');
+
+  try {
+    const userInfoRes = await getMe();
+    if (userInfoRes.code === 0) {
+      userStore.setUserInfo(userInfoRes.data);
+      message.success('登录成功');
+      router.push('/');
+    } else {
+      throw new Error(userInfoRes.message || '获取用户信息失败');
+    }
+  } catch (error) {
+    console.error('获取用户信息失败:', error);
+    message.error('登录成功，但获取用户信息失败，部分功能可能受限。');
+    router.push('/');
+  }
 };
 
 const onAccountLogin = async () => {
   try {
     await accountFormRef.value.validate();
     const res = await loginApi.accountLogin(accountLoginForm);
-    if (!res.code) handleLoginSuccess(res.data);
-    else message.error(res.message);
+    if (res.code === 0) {
+      await handleLoginSuccess(res.data);
+    } else {
+      message.error(res.message);
+    }
   } catch (error) {
     console.error('账号登录失败:', error);
     message.error('登录失败，请稍后重试');
@@ -177,8 +196,11 @@ const onEmailLogin = async () => {
   try {
     await emailLoginFormRef.value.validate();
     const res = await loginApi.loginWithCode(emailLoginForm);
-    if (!res.code) handleLoginSuccess(res.data);
-    else message.error(res.message);
+    if (res.code === 0) {
+      await handleLoginSuccess(res.data);
+    } else {
+      message.error(res.message);
+    }
   } catch (error) {
     console.error('邮箱登录失败:', error);
     message.error('登录失败，请稍后重试');

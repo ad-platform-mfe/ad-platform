@@ -9,3 +9,17 @@ declare module '@micro-zoe/micro-app' {
     esmodule?: boolean;
   }
 }
+
+declare module 'vue' {
+  interface ComponentCustomProperties {
+    $microApp: any;
+  }
+}
+
+declare global {
+  interface Window {
+    microApp: any;
+  }
+}
+
+export {};

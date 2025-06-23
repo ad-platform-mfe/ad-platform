@@ -27,10 +27,6 @@ const config: UserConfig = {
         target: 'http://localhost:9090',
         changeOrigin: true,
       },
-      '/child-home': {
-        target: 'http://localhost:3000',
-        changeOrigin: true,
-      },
     },
   },
 };

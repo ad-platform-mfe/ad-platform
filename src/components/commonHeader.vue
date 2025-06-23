@@ -3,9 +3,11 @@ import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { message } from 'ant-design-vue';
 import microApp from '@micro-zoe/micro-app';
+import { useUserStore } from '@/store/user';
 
 const router = useRouter();
 const route = useRoute();
+const userStore = useUserStore();
 
 const activeIndex = ref([]);
 
@@ -46,7 +48,7 @@ const handleMenuClick = (e) => {
   router.push({ name: e.key });
 };
 
-function logout() {
+function handleLogout() {
   localStorage.removeItem('token');
   microApp.clearGlobalData();
   message.success('退出成功');
@@ -93,7 +95,7 @@ function testGlobalData() {
           >
             <template #title>广告管理</template>
             <a-menu-item key="campaignManage">广告计划管理</a-menu-item>
-            <a-menu-item key="adReview">广告审核</a-menu-item>
+            <a-menu-item v-if="userStore.isAdmin" key="adReview">广告审核</a-menu-item>
             <a-menu-item key="campaignGroups">广告组 & 广告单元</a-menu-item>
           </a-sub-menu>
           <a-sub-menu
@@ -132,7 +134,7 @@ function testGlobalData() {
         <a-button @click="testGlobalData" type="primary" style="margin-right: 15px">
           测试全局通信
         </a-button>
-        <a-button v-if="globalData && globalData.token" @click="logout" class="logout-btn" ghost>
+        <a-button v-if="userStore.token" @click="handleLogout" class="logout-btn" ghost>
           退出
         </a-button>
         <a-button
