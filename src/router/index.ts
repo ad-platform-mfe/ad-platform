@@ -5,6 +5,7 @@ import adHome from '@/views/main/ad-home.vue';
 import adMaterial from '@/views/child/ad-material.vue';
 import adShop from '@/views/child/ad-shop.vue';
 import CustomerService from '@/views/child/ad-service.vue';
+import adSetting from '@/views/child/ad-setting.vue';
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -102,6 +103,19 @@ const routes: Array<RouteRecordRaw> = [
     name: 'customer-service',
     component: CustomerService,
     meta: { title: '客服中心', keepAlive: false },
+  },
+  // --- 系统设置 ---
+  {
+    path: '/profile',
+    name: 'profile',
+    component: adSetting,
+    meta: { title: '个人设置', keepAlive: false },
+  },
+  {
+    path: '/user-management',
+    name: 'user-management',
+    component: adSetting,
+    meta: { title: '用户管理', keepAlive: false },
   },
 ];
 

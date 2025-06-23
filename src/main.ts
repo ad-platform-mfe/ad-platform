@@ -38,6 +38,11 @@ microApp.start({
           esmodule: true,
         } as any,
       ],
+      'ad-setting': [
+        {
+          esmodule: true,
+        } as any,
+      ],
     },
   },
   preFetchApps: [

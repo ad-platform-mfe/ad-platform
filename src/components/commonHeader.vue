@@ -128,6 +128,15 @@ function testGlobalData() {
             <a-menu-item key="customer-message">申诉中心</a-menu-item>
             <a-menu-item key="customer-setting">客服配置</a-menu-item>
           </a-sub-menu>
+          <a-sub-menu
+            key="system-setting"
+            popup-class-name="header-submenu-popup"
+            :popup-offset="[-18, 1]"
+          >
+            <template #title>系统设置</template>
+            <a-menu-item key="profile">个人设置</a-menu-item>
+            <a-menu-item key="user-management" v-if="userStore.isAdmin">用户管理</a-menu-item>
+          </a-sub-menu>
         </a-menu>
       </div>
       <div class="actions">
@@ -184,7 +193,7 @@ function testGlobalData() {
   .menu-container {
     display: flex;
     flex: 1;
-    margin-right: 300px;
+    margin-right: 230px;
     height: 100%;
   }
 
