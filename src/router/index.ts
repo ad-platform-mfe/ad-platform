@@ -54,8 +54,8 @@ const routes: Array<RouteRecordRaw> = [
     meta: { title: '广告审核', keepAlive: false },
   },
   {
-    path: '/campaign-groups',
-    name: 'campaignGroups',
+    path: '/ad-group',
+    name: 'adGroup',
     component: adMaterial,
     meta: { title: '广告组 & 广告单元', keepAlive: false },
   },

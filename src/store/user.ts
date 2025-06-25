@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia';
+import { getMe } from '@/api/userApi';
 
 export interface UserInfo {
   id: number;
@@ -30,6 +31,19 @@ export const useUserStore = defineStore('user', {
       localStorage.removeItem('token');
       // 可选：通知子应用登出
       window.microApp?.dispatch({ type: 'logout' });
+    },
+    async fetchUserProfile() {
+      try {
+        const res = await getMe();
+        if (res.data) {
+          this.setUserInfo(res.data);
+        }
+        return res.data;
+      } catch (error) {
+        console.error('获取用户信息失败', error);
+        this.logout(); // 获取失败时登出
+        throw error;
+      }
     },
   },
 });

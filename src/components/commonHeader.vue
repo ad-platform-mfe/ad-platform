@@ -96,7 +96,7 @@ function testGlobalData() {
             <template #title>广告管理</template>
             <a-menu-item key="campaignManage">广告计划管理</a-menu-item>
             <a-menu-item v-if="userStore.isAdmin" key="adReview">广告审核</a-menu-item>
-            <a-menu-item key="campaignGroups">广告组 & 广告单元</a-menu-item>
+            <a-menu-item key="adGroup">广告组 & 广告单元</a-menu-item>
           </a-sub-menu>
           <a-sub-menu
             key="product-management"
@@ -104,8 +104,8 @@ function testGlobalData() {
             :popup-offset="[-18, 1]"
           >
             <template #title>商品管理</template>
-            <a-menu-item key="productsList">商品列表</a-menu-item>
-            <a-menu-item key="productsFilter">投放商品筛选</a-menu-item>
+            <a-menu-item key="productsList">库存列表</a-menu-item>
+            <a-menu-item key="productsFilter">店铺管理</a-menu-item>
             <a-menu-item key="productsSuggest">投放建议</a-menu-item>
           </a-sub-menu>
           <a-sub-menu
