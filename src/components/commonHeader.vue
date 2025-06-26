@@ -125,7 +125,7 @@ function testGlobalData() {
           >
             <template #title>客服中心</template>
             <a-menu-item key="customer-service">客服中心</a-menu-item>
-            <a-menu-item key="customer-message">申诉中心</a-menu-item>
+            <a-menu-item key="appeal">申诉中心</a-menu-item>
             <a-menu-item key="customer-setting">客服配置</a-menu-item>
           </a-sub-menu>
           <a-sub-menu

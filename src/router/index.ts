@@ -104,6 +104,12 @@ const routes: Array<RouteRecordRaw> = [
     component: CustomerService,
     meta: { title: '客服中心', keepAlive: false },
   },
+  {
+    path: '/appeal',
+    name: 'appeal',
+    component: CustomerService,
+    meta: { title: '申诉中心', keepAlive: false },
+  },
   // --- 系统设置 ---
   {
     path: '/profile',

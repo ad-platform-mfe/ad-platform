@@ -9,7 +9,6 @@ import { useUserStore } from '@/store/user';
 const route = useRoute();
 const userStore = useUserStore();
 
-// 在应用加载时，尝试恢复用户会话
 onMounted(() => {
   const token = localStorage.getItem('token');
   if (token && !userStore.userInfo) {
